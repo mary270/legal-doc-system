@@ -1,0 +1,30 @@
+{
+  "file_name": "commercial_lease_riverside.txt",
+  "char_count": 4300,
+  "chunk_count": 1,
+  "structured_fields": {
+    "document_type": "contract",
+    "parties": [
+      "Harbor Properties LLC",
+      "Riverside Corporation"
+    ],
+    "dates": {
+      "document_date": "2022-03-12",
+      "effective_date": "2022-04-01",
+      "other_dates": [
+        "Commencement Date: 2022-04-01",
+        "Expiration Date: 2027-03-31"
+      ]
+    },
+    "property_or_subject": "Commercial real property located at 88 Commerce Drive, Newark, NJ 07102",
+    "key_obligations": [
+      "Tenant to pay base rent of $38,500.00 per month",
+      "Tenant to maintain interior of premises",
+      "Landlord to maintain structural elements, roof, exterior walls, and building systems"
+    ],
+    "jurisdiction": "New Jersey",
+    "case_or_reference_number": null,
+    "summary": "This is a commercial lease agreement between Harbor Properties LLC and Riverside Corporation for the lease of commercial real property located at 88 Commerce Drive, Newark, NJ 07102, with a lease term of 5 years and a monthly base rent of $38,500.00."
+  },
+  "text_preview": "[SCANNED DOCUMENT \u2014 OCR OUTPUT \u2014 SOME TEXT MAY BE DEGRADED]\n\nCOMMERCIAL LEASE AGREEMENT\n\nThi5 Commercia1 Lease Agreement (\"Agreement\") is entered into as of March 12, 2022,\nby and between:\n\nLANDLORD: Harbor Properties LLC, a Delaware limited liability company,\nwith its principal office at 1400 Harbor Boulevard, Suite 800, Wilmington, DE 19801\n(\"Landlord\")\n\nand\n\nTENANT: Riverside Corporation, a New York corporation,\nwith its principal office at 500 Madison Avenue, Floor 22, New York, NY 10022\n(\"T"
+}

@@ -1,0 +1,34 @@
+{
+  "file_name": "tenant_response_memo.txt",
+  "char_count": 2337,
+  "chunk_count": 1,
+  "structured_fields": {
+    "document_type": "memo",
+    "parties": [
+      "Riverside Corporation",
+      "Harbor Properties LLC",
+      "Greenfield Consulting"
+    ],
+    "dates": {
+      "document_date": "2023-09-15",
+      "effective_date": null,
+      "other_dates": [
+        "Rent payment for July 2023: 2023-06-28",
+        "Rent payment for August 2023: 2023-07-31",
+        "Default notice from Harbor Properties: 2023-09-08",
+        "Project with Greenfield Consulting: 2023-03-01 to 2023-08-31",
+        "Harrington's departure from Harbor: early 2023"
+      ]
+    },
+    "property_or_subject": "Dispute over unpaid rent and alleged sublease",
+    "key_obligations": [
+      "Rent payment for July and August 2023",
+      "Review and response to default notice",
+      "Assessment of procedural propriety of Harbor's notice"
+    ],
+    "jurisdiction": null,
+    "case_or_reference_number": null,
+    "summary": "This memo discusses Riverside Corporation's response strategy to a default notice from Harbor Properties LLC regarding unpaid rent and an alleged sublease, disputing both allegations and outlining steps for a formal response. The memo is confidential and protected by attorney-client privilege."
+  },
+  "text_preview": "[INTERNAL MEMO \u2014 RIVERSIDE CORPORATION]\n[SCANNED FROM FAX \u2014 DEGRADED QUALITY]\n\nMEMORANDUM\n\nTO:      Legal Team, Riverside Corporation\nFROM:    Sarah M. Chen, COO\nDATE:    September 15, 2023\nRE:      Harbor Properties Default Notice \u2014 Response Strategy\n\nCONFIDENTIAL \u2014 ATTORNEY-CLIENT PRIVILEGE\n\nI am writing to provide factual context regarding the default notice received from\nHarbor Properties LLC dated September 8, 2023.\n\nREGARDING UNPAID RENT:\nThe allegation that rent for July and August 2023 w"
+}

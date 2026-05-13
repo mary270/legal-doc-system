@@ -1,0 +1,72 @@
+[
+  {
+    "preference": "Maintain a neutral and objective tone throughout the summary",
+    "extracted_at": "2026-05-13T12:40:28.751038",
+    "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
+    "doc_names": [],
+    "active": true
+  },
+  {
+    "preference": "Include exact dates and dollar amounts whenever possible",
+    "extracted_at": "2026-05-13T12:40:28.751038",
+    "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
+    "doc_names": [],
+    "active": true
+  },
+  {
+    "preference": "Highlight potential issues with document quality and authenticity",
+    "extracted_at": "2026-05-13T12:40:28.751038",
+    "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
+    "doc_names": [],
+    "active": true
+  },
+  {
+    "preference": "Use consistent citation formatting throughout the document",
+    "extracted_at": "2026-05-13T12:40:28.751038",
+    "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
+    "doc_names": [],
+    "active": true
+  },
+  {
+    "preference": "Emphasize key obligations and terms of the lease agreement",
+    "extracted_at": "2026-05-13T12:40:28.751038",
+    "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
+    "doc_names": [],
+    "active": true
+  },
+  {
+    "preference": "Use all capital letters for headings like CASE FACT SUMMARY",
+    "extracted_at": "2026-05-13T12:40:37.826852",
+    "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
+    "doc_names": [],
+    "active": true
+  },
+  {
+    "preference": "Include privilege designation such as ATTORNEY-CLIENT",
+    "extracted_at": "2026-05-13T12:40:37.826852",
+    "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
+    "doc_names": [],
+    "active": true
+  },
+  {
+    "preference": "Maintain consistency in citation formatting",
+    "extracted_at": "2026-05-13T12:40:37.826852",
+    "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
+    "doc_names": [],
+    "active": true
+  },
+  {
+    "preference": "Consider adding a confidentiality notice",
+    "extracted_at": "2026-05-13T12:40:37.826852",
+    "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
+    "doc_names": [],
+    "active": true
+  },
+  {
+    "preference": "Ensure clarity and specificity in documenting open issues and gaps",
+    "extracted_at": "2026-05-13T12:40:37.826852",
+    "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
+    "doc_names": [],
+    "active": true
+  }
+]
