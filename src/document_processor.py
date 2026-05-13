@@ -97,6 +97,48 @@ def _extract_text_plain(file_path: str) -> str:
         return f.read()
 
 
+def _extract_text_docx(file_path: str) -> str:
+    """Extract text from .docx Word documents."""
+    try:
+        import docx
+        doc = docx.Document(file_path)
+        paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
+        # Also grab table content
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = " | ".join(cell.text.strip() for cell in row.cells if cell.text.strip())
+                if row_text:
+                    paragraphs.append(row_text)
+        return "\n\n".join(paragraphs)
+    except ImportError:
+        raise RuntimeError("python-docx not installed — run: pip install python-docx")
+
+
+def _extract_text_rtf(file_path: str) -> str:
+    """Extract text from RTF files by stripping RTF control words."""
+    with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+        raw = f.read()
+    # Strip RTF control sequences
+    text = re.sub(r"\\\w+", " ", raw)
+    text = re.sub(r"[{}]", "", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+def _extract_text_csv(file_path: str) -> str:
+    """Convert CSV to readable text representation."""
+    import csv
+    rows = []
+    with open(file_path, newline="", encoding="utf-8", errors="replace") as f:
+        reader = csv.reader(f)
+        for i, row in enumerate(reader):
+            if i == 0:
+                rows.append("COLUMNS: " + " | ".join(row))
+            else:
+                rows.append(" | ".join(row))
+    return "\n".join(rows)
+
+
 def _clean_text(raw: str) -> str:
     """Light-touch cleaning: collapse whitespace runs, fix common OCR artifacts."""
     text = raw.replace("\x0c", "\n")
@@ -152,7 +194,14 @@ def process_document(file_path: str) -> dict[str, Any]:
         raw_text = _extract_text_pdf(file_path)
     elif suffix in {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp"}:
         raw_text = _extract_text_image(file_path)
+    elif suffix == ".docx":
+        raw_text = _extract_text_docx(file_path)
+    elif suffix == ".rtf":
+        raw_text = _extract_text_rtf(file_path)
+    elif suffix == ".csv":
+        raw_text = _extract_text_csv(file_path)
     else:
+        # .txt, .md, .doc (plain fallback), .log, etc.
         raw_text = _extract_text_plain(file_path)
 
     clean_text = _clean_text(raw_text)

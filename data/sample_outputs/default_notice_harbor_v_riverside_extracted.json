@@ -6,24 +6,26 @@
     "document_type": "notice",
     "parties": [
       "Riverside Corporation",
-      "Harbor Properties LLC"
+      "Harbor Properties LLC",
+      "Greenfield Consulting"
     ],
     "dates": {
       "document_date": "2023-09-08",
       "effective_date": null,
       "other_dates": [
-        "Lease date: March 12, 2022",
-        "Default period: July 2023 and August 2023"
+        "Commercial Lease dated: 2022-03-12",
+        "Payment due for July 2023: 2023-07-01",
+        "Payment due for August 2023: 2023-08-01"
       ]
     },
-    "property_or_subject": "Commercial Lease at 88 Commerce Drive, Newark, NJ 07102",
+    "property_or_subject": "Commercial Lease for 88 Commerce Drive, Newark, NJ 07102",
     "key_obligations": [
-      "Riverside Corporation must pay $77,000 in outstanding rent within 5 business days",
-      "Riverside Corporation must terminate or obtain consent for unauthorized sublease within 30 days"
+      "Payment of $77,000.00 in outstanding rent",
+      "Termination of unauthorized sublease to Greenfield Consulting or obtain Landlord's written consent"
     ],
     "jurisdiction": "New Jersey",
     "case_or_reference_number": null,
-    "summary": "This notice informs Riverside Corporation of default under a commercial lease due to unpaid rent and unauthorized sublease, and demands that the issues be resolved within specific timeframes. Failure to comply may result in termination of the lease and other legal consequences."
+    "summary": "This notice informs Riverside Corporation of default under a Commercial Lease and demands payment of outstanding rent and termination of an unauthorized sublease. If the conditions are not met within the given timeframe, Harbor Properties LLC will pursue all available remedies under the Lease and applicable New Jersey law."
   },
   "text_preview": "[HANDWRITTEN NOTE TRANSCRIPTION \u2014 OCR QUALITY: FAIR]\n[Some words reconstructed from context \u2014 marked with [?]]\n\nNOTICE OF DEFAULT AND DEMAND TO CURE\n\nDate: September 8, 2023     [handwritten \u2014 may be Sept 3 or Sept 8]\n\nVIA CERTIFIED MAIL AND EMAIL\n\nTo:     Riverside Corporation\n        Attn: Sarah M. Chen, COO\n        500 Madison Avenue, Floor 22\n        New York, NY 10022\n        Email: s.chen@riversidecorp.com [?]\n\nFrom:   Harbor Properties LLC\n        Attn: Legal Department\n        1400 Harbo"
 }

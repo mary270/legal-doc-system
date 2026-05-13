@@ -68,5 +68,95 @@
     "query": "Summarize the key facts, parties, obligations, and disputes in the Harbor v. Riverside lease matter.",
     "doc_names": [],
     "active": true
+  },
+  {
+    "preference": "Maintain a formal tone throughout the document",
+    "extracted_at": "2026-05-13T19:47:02.317934",
+    "query": "What are the key facts about the lease dispute between Riverside and Harbor?",
+    "doc_names": [
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "commercial_lease_riverside.txt",
+      "commercial_lease_riverside.txt"
+    ],
+    "active": true
+  },
+  {
+    "preference": "Retain the original structure and organization of the AI-generated draft",
+    "extracted_at": "2026-05-13T19:47:02.317934",
+    "query": "What are the key facts about the lease dispute between Riverside and Harbor?",
+    "doc_names": [
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "commercial_lease_riverside.txt",
+      "commercial_lease_riverside.txt"
+    ],
+    "active": true
+  },
+  {
+    "preference": "Include exact dollar amounts in the description of financial obligations and disputes",
+    "extracted_at": "2026-05-13T19:47:02.317934",
+    "query": "What are the key facts about the lease dispute between Riverside and Harbor?",
+    "doc_names": [
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "commercial_lease_riverside.txt",
+      "commercial_lease_riverside.txt"
+    ],
+    "active": true
+  },
+  {
+    "preference": "Specify the source documents for each piece of information, including page numbers when relevant",
+    "extracted_at": "2026-05-13T19:47:02.317934",
+    "query": "What are the key facts about the lease dispute between Riverside and Harbor?",
+    "doc_names": [
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "commercial_lease_riverside.txt",
+      "commercial_lease_riverside.txt"
+    ],
+    "active": true
+  },
+  {
+    "preference": "Emphasize unclear or disputed aspects of the case, such as authorization and signatory questions",
+    "extracted_at": "2026-05-13T19:47:02.317934",
+    "query": "What are the key facts about the lease dispute between Riverside and Harbor?",
+    "doc_names": [
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "tenant_response_memo.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "default_notice_harbor_v_riverside.txt",
+      "commercial_lease_riverside.txt",
+      "commercial_lease_riverside.txt"
+    ],
+    "active": true
   }
 ]
