@@ -538,7 +538,7 @@ label[data-testid="stWidgetLabel"] > div > p { color: #64748b !important; font-s
 """, unsafe_allow_html=True)
 
 # ── Imports ────────────────────────────────────────────────────────────────────
-from groq import RateLimitError
+from groq import RateLimitError, BadRequestError
 
 from document_processor import process_document
 from retrieval import add_document, search, list_documents, delete_document
@@ -770,6 +770,8 @@ with tab1:
                     if learned:
                         st.info(f"{len(learned)} learned preferences applied to this draft.")
                 except RateLimitError as e:
+                    _show_rate_limit_error(e)
+                except BadRequestError as e:
                     _show_rate_limit_error(e)
                 except Exception as e:
                     st.error(f"Generation failed: {e}")

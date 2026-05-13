@@ -17,19 +17,29 @@ from typing import Any
 from groq import Groq
 
 _client = Groq(api_key=os.environ.get("GROQ_API_KEY", ""))
-_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+_MODELS = [
+    ("llama-3.3-70b-versatile", 60000),
+    ("gemma2-9b-it",            20000),
+    ("llama-3.1-8b-instant",    12000),
+]
 
 
 def _chat(messages: list, max_tokens: int = 512) -> str:
-    from groq import RateLimitError
-    for model in _MODELS:
+    from groq import RateLimitError, BadRequestError
+    for model, char_budget in _MODELS:
+        trimmed = []
+        for m in messages:
+            if m["role"] == "user" and len(m["content"]) > char_budget:
+                trimmed.append({**m, "content": m["content"][:char_budget]})
+            else:
+                trimmed.append(m)
         try:
             resp = _client.chat.completions.create(
-                model=model, max_tokens=max_tokens, messages=messages,
+                model=model, max_tokens=max_tokens, messages=trimmed,
             )
             return resp.choices[0].message.content.strip()
-        except RateLimitError:
-            if model == _MODELS[-1]:
+        except (RateLimitError, BadRequestError):
+            if model == _MODELS[-1][0]:
                 raise
             continue
     return "[]"

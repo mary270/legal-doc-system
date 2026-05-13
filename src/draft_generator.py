@@ -12,25 +12,51 @@ from groq import Groq
 
 _client = Groq(api_key=os.environ.get("GROQ_API_KEY", ""))
 
-# Primary model → fallback model (smaller, separate daily quota)
-_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+# Fallback chain: each model has its own daily quota and TPM limit
+# gemma2-9b-it has 15k TPM — handles larger prompts than llama-3.1-8b (6k TPM)
+_MODELS = [
+    ("llama-3.3-70b-versatile", 2048),   # primary — best quality
+    ("gemma2-9b-it",            1500),   # fallback 1 — 15k TPM, handles big prompts
+    ("llama-3.1-8b-instant",     800),   # fallback 2 — smallest, strict truncation
+]
+
+
+def _truncate_prompt(messages: list, max_chars: int) -> list:
+    """Trim the user message content so the total prompt fits within max_chars."""
+    result = []
+    for m in messages:
+        if m["role"] == "user" and len(m["content"]) > max_chars:
+            result.append({**m, "content": m["content"][:max_chars] + "\n\n[Evidence truncated to fit model limits]"})
+        else:
+            result.append(m)
+    return result
 
 
 def _chat(messages: list, system: str, max_tokens: int) -> str:
-    """Try each model in order; fall back automatically on rate-limit."""
-    from groq import RateLimitError
-    for model in _MODELS:
+    """Try each model in fallback order, shrinking the prompt for smaller models."""
+    from groq import RateLimitError, BadRequestError
+
+    # Char budgets per model (rough: 1 token ≈ 4 chars)
+    char_budgets = {
+        "llama-3.3-70b-versatile": 60000,
+        "gemma2-9b-it":            20000,
+        "llama-3.1-8b-instant":    12000,
+    }
+
+    for model, out_tokens in _MODELS:
+        budget   = char_budgets.get(model, 16000)
+        trimmed  = _truncate_prompt(messages, budget)
         try:
             resp = _client.chat.completions.create(
                 model=model,
-                max_tokens=max_tokens,
-                messages=[{"role": "system", "content": system}] + messages,
+                max_tokens=min(max_tokens, out_tokens),
+                messages=[{"role": "system", "content": system}] + trimmed,
             )
             return resp.choices[0].message.content
-        except RateLimitError:
-            if model == _MODELS[-1]:
-                raise          # no more fallbacks — let caller handle
-            continue           # try next model
+        except (RateLimitError, BadRequestError):
+            if model == _MODELS[-1][0]:
+                raise
+            continue
     return ""
 
 _SYSTEM_PROMPT = """You are a senior legal analyst at Pearson Specter Litt preparing internal case fact summaries.
