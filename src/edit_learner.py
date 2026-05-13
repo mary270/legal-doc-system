@@ -17,7 +17,22 @@ from typing import Any
 from groq import Groq
 
 _client = Groq(api_key=os.environ.get("GROQ_API_KEY", ""))
-_MODEL = "llama-3.3-70b-versatile"
+_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+
+
+def _chat(messages: list, max_tokens: int = 512) -> str:
+    from groq import RateLimitError
+    for model in _MODELS:
+        try:
+            resp = _client.chat.completions.create(
+                model=model, max_tokens=max_tokens, messages=messages,
+            )
+            return resp.choices[0].message.content.strip()
+        except RateLimitError:
+            if model == _MODELS[-1]:
+                raise
+            continue
+    return "[]"
 
 _PREFS_FILE = Path(__file__).parent.parent / "data" / "learned_preferences" / "preferences.json"
 
@@ -81,19 +96,13 @@ def capture_edit(
         edited=edited_draft[:3000],
     )
 
-    response = _client.chat.completions.create(
-        model=_MODEL,
-        max_tokens=512,
+    raw = _chat(
         messages=[
-            {
-                "role": "system",
-                "content": "You are a legal AI trainer. Always respond with a valid JSON array only, no markdown.",
-            },
-            {"role": "user", "content": prompt},
+            {"role": "system", "content": "You are a legal AI trainer. Always respond with a valid JSON array only, no markdown."},
+            {"role": "user",   "content": prompt},
         ],
+        max_tokens=512,
     )
-
-    raw = response.choices[0].message.content.strip()
     raw = re.sub(r"^```json?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
 

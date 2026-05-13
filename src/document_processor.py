@@ -30,7 +30,23 @@ except ImportError:
 
 
 _client = Groq(api_key=os.environ.get("GROQ_API_KEY", ""))
-_MODEL = "llama-3.3-70b-versatile"
+_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+
+
+def _chat(messages: list, max_tokens: int = 1024) -> str:
+    """Try primary model, fall back to smaller one on rate-limit."""
+    from groq import RateLimitError
+    for model in _MODELS:
+        try:
+            resp = _client.chat.completions.create(
+                model=model, max_tokens=max_tokens, messages=messages,
+            )
+            return resp.choices[0].message.content.strip()
+        except RateLimitError:
+            if model == _MODELS[-1]:
+                raise
+            continue
+    return ""
 
 _STRUCT_PROMPT = """You are a legal document analyst.
 
@@ -154,22 +170,13 @@ def _extract_structured_fields(text: str) -> dict[str, Any]:
     """Use Groq (LLaMA 3) to pull structured fields from raw legal text."""
     snippet = text[:6000]
     try:
-        response = _client.chat.completions.create(
-            model=_MODEL,
-            max_tokens=1024,
+        raw_json = _chat(
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are a legal document analyst. Always respond with valid JSON only, no markdown fences.",
-                },
-                {
-                    "role": "user",
-                    "content": _STRUCT_PROMPT + snippet,
-                },
+                {"role": "system", "content": "You are a legal document analyst. Always respond with valid JSON only, no markdown fences."},
+                {"role": "user",   "content": _STRUCT_PROMPT + snippet},
             ],
+            max_tokens=1024,
         )
-        raw_json = response.choices[0].message.content.strip()
-        # Strip markdown fences if model adds them
         raw_json = re.sub(r"^```json?\s*", "", raw_json)
         raw_json = re.sub(r"\s*```$", "", raw_json)
         return json.loads(raw_json)

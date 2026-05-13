@@ -11,7 +11,27 @@ from typing import Any
 from groq import Groq
 
 _client = Groq(api_key=os.environ.get("GROQ_API_KEY", ""))
-_MODEL = "llama-3.3-70b-versatile"
+
+# Primary model → fallback model (smaller, separate daily quota)
+_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+
+
+def _chat(messages: list, system: str, max_tokens: int) -> str:
+    """Try each model in order; fall back automatically on rate-limit."""
+    from groq import RateLimitError
+    for model in _MODELS:
+        try:
+            resp = _client.chat.completions.create(
+                model=model,
+                max_tokens=max_tokens,
+                messages=[{"role": "system", "content": system}] + messages,
+            )
+            return resp.choices[0].message.content
+        except RateLimitError:
+            if model == _MODELS[-1]:
+                raise          # no more fallbacks — let caller handle
+            continue           # try next model
+    return ""
 
 _SYSTEM_PROMPT = """You are a senior legal analyst at Pearson Specter Litt preparing internal case fact summaries.
 
@@ -120,21 +140,16 @@ def generate_draft(
         preference_block=preference_block,
     )
 
-    response = _client.chat.completions.create(
-        model=_MODEL,
+    draft_text = _chat(
+        messages=[{"role": "user", "content": prompt}],
+        system=_SYSTEM_PROMPT,
         max_tokens=2048,
-        messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
     )
-
-    draft_text = response.choices[0].message.content
 
     return {
         "draft": draft_text,
         "sources": source_index,
         "evidence_used": len(retrieved_chunks),
-        "model": _MODEL,
+        "model": "groq/llama-3",
         "preferences_applied": len(learned_preferences) if learned_preferences else 0,
     }

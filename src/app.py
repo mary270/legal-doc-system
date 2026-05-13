@@ -240,28 +240,46 @@ html, body, [class*="css"] {
 /* ── Primary button ── */
 .stButton > button {
     background: #c8a84b !important;
-    color: #080b10 !important;
-    font-weight: 600 !important;
+    color: #0a0a0a !important;
+    font-weight: 700 !important;
     font-size: 0.78rem !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.08em !important;
     text-transform: uppercase !important;
     border: none !important;
     border-radius: 5px !important;
-    padding: 0.55rem 1.4rem !important;
+    padding: 0.6rem 1.4rem !important;
     transition: all 0.15s !important;
     width: 100% !important;
+    text-shadow: none !important;
+    -webkit-font-smoothing: antialiased !important;
 }
 .stButton > button:hover {
-    background: #d9b95c !important;
+    background: #dfc06a !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 3px 12px rgba(200,168,75,0.2) !important;
+    box-shadow: 0 4px 16px rgba(200,168,75,0.3) !important;
+    color: #0a0a0a !important;
 }
+.stButton > button:active { transform: translateY(0) !important; }
 .stButton > button[disabled] {
     background: #1c2230 !important;
     color: #4a5568 !important;
     transform: none !important;
     box-shadow: none !important;
 }
+/* Sidebar button — slightly lighter gold so text pops on dark sidebar */
+[data-testid="stSidebar"] .stButton > button {
+    background: #d4b05a !important;
+    color: #080808 !important;
+    font-weight: 800 !important;
+    border: 1.5px solid #e8c878 !important;
+}
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: #e2c46e !important;
+    color: #080808 !important;
+}
+
+/* ── Hide the progress bar text label (looks messy) ── */
+.stProgress p, [data-testid="stProgressBarMessage"] { display: none !important; }
 
 /* ── Download button ── */
 [data-testid="stDownloadButton"] > button {
@@ -520,10 +538,43 @@ label[data-testid="stWidgetLabel"] > div > p { color: #64748b !important; font-s
 """, unsafe_allow_html=True)
 
 # ── Imports ────────────────────────────────────────────────────────────────────
+from groq import RateLimitError
+
 from document_processor import process_document
 from retrieval import add_document, search, list_documents, delete_document
 from draft_generator import generate_draft
 from edit_learner import capture_edit, get_active_preferences, list_all_preferences, deactivate_preference
+
+
+def _show_rate_limit_error(exc: Exception) -> None:
+    """Show a clean, actionable rate-limit message instead of a Python traceback."""
+    import re
+    msg = str(exc)
+    # Try to pull the retry-after time from the error message
+    match = re.search(r"try again in ([\d.]+[smh]+)", msg, re.I)
+    wait  = match.group(1) if match else "a few minutes"
+    st.markdown(f"""
+    <div style="background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.25);
+                border-left:3px solid #f87171; border-radius:6px;
+                padding:1rem 1.2rem; font-size:0.83rem; color:#d4d8e0; line-height:1.6;">
+        <div style="font-weight:700; color:#f87171; margin-bottom:0.4rem;">
+            Groq API — Daily Token Limit Reached
+        </div>
+        The free Groq tier allows 100,000 tokens per day. Your daily quota is used up.<br>
+        <strong style="color:#c8a84b;">You have two options:</strong>
+        <ul style="margin:0.6rem 0 0.4rem 1rem; color:#a8b0bf;">
+            <li><strong>Wait {wait}</strong> — the quota resets automatically, then try again.</li>
+            <li><strong>Get a new API key</strong> — create a second free account at
+                <a href="https://console.groq.com" target="_blank"
+                   style="color:#c8a84b;">console.groq.com</a>,
+                copy the new key, and paste it in <code style="color:#4ade80;">.env</code>
+                replacing the current one.</li>
+        </ul>
+        <div style="font-size:0.72rem; color:#4a5568; margin-top:0.5rem; font-family:monospace;">
+            {msg[:180]}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 SUPPORTED_TYPES = ["pdf", "txt", "png", "jpg", "jpeg", "tiff", "tif", "bmp",
                    "docx", "md", "csv", "rtf"]
@@ -615,8 +666,10 @@ with st.sidebar:
                         <div style="margin-bottom:0.3rem;">{badge(fields.get('document_type','other'))}</div>
                         <div class="doc-meta">{fields.get('summary','')[:120]}</div>
                     </div>""", unsafe_allow_html=True)
+                except RateLimitError as exc:
+                    _show_rate_limit_error(exc)
                 except Exception as exc:
-                    st.error(f"{exc}")
+                    st.error(f"Processing failed: {exc}")
                 finally:
                     os.unlink(tmp_path)
             st.rerun()
@@ -702,22 +755,24 @@ with tab1:
             generate_btn = st.button("Run Analysis", disabled=not query, use_container_width=True)
 
         if generate_btn and query:
-            bar = st.progress(0, text="Retrieving evidence…")
-            chunks = search(query, n_results=n_results)
-            bar.progress(40, text="Loading learned preferences…")
-            learned = get_active_preferences()
-            bar.progress(65, text="Generating grounded draft…")
-            result = generate_draft(query=query, retrieved_chunks=chunks, learned_preferences=learned)
-            bar.progress(100, text="Complete")
-            time.sleep(0.3)
-            bar.empty()
-
-            st.session_state.last_draft   = result["draft"]
-            st.session_state.last_query   = query
-            st.session_state.last_sources = result["sources"]
-
-            if learned:
-                st.info(f"{len(learned)} learned preferences applied to this draft.")
+            with st.spinner("Retrieving evidence and generating draft — this takes a few seconds…"):
+                try:
+                    chunks  = search(query, n_results=n_results)
+                    learned = get_active_preferences()
+                    result  = generate_draft(
+                        query=query,
+                        retrieved_chunks=chunks,
+                        learned_preferences=learned,
+                    )
+                    st.session_state.last_draft   = result["draft"]
+                    st.session_state.last_query   = query
+                    st.session_state.last_sources = result["sources"]
+                    if learned:
+                        st.info(f"{len(learned)} learned preferences applied to this draft.")
+                except RateLimitError as e:
+                    _show_rate_limit_error(e)
+                except Exception as e:
+                    st.error(f"Generation failed: {e}")
 
         if st.session_state.last_draft:
             st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
