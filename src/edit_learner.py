@@ -19,6 +19,7 @@ from typing import Any
 from groq import Groq
 
 from metrics import compute_edit_metrics, save_metrics
+from few_shot_store import save_example
 
 try:
     from config import GROQ_API_KEY, LLM_MODELS, PREFS_FILE, MAX_ACTIVE_PREFERENCES
@@ -139,6 +140,15 @@ def capture_edit(
 
     # Persist metrics history
     save_metrics({**edit_metrics, "query": query})
+
+    # Save as few-shot example if draft quality was reasonable
+    save_example(
+        query=query,
+        original_draft=original_draft,
+        edited_draft=edited_draft,
+        improvement_score=edit_metrics["improvement_score"],
+        doc_names=doc_names,
+    )
 
     # Step 2 — semantic preference extraction
     prompt = _ANALYZE_PROMPT.format(

@@ -362,6 +362,8 @@ from retrieval import add_document, search, list_documents, delete_document
 from draft_generator import generate_draft
 from edit_learner import capture_edit, get_active_preferences, list_all_preferences, deactivate_preference
 from metrics import load_metrics_history, summarise_improvement
+from few_shot_store import list_examples, delete_example
+from operator_profile import build_profile, load_profile
 
 SUPPORTED = ["pdf","txt","png","jpg","jpeg","tiff","tif","bmp","md","rtf"]
 
@@ -494,7 +496,7 @@ html += "</div>"
 st.markdown(html, unsafe_allow_html=True)
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["Generate Draft", "Edit and Learn", "Intelligence Hub"])
+tab1, tab2, tab3, tab4 = st.tabs(["Generate Draft", "Edit and Learn", "Intelligence Hub", "Operator Profile"])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -799,3 +801,124 @@ with tab3:
                     <span class="imp-val" style="color:{d_col};">{d_str} pts</span>
                 </div>
             </div>""", unsafe_allow_html=True)
+
+        # Trend chart with altair
+        if len(history) >= 2:
+            try:
+                import altair as alt
+                import pandas as pd
+                df = pd.DataFrame([
+                    {"Edit": i+1, "Improvement Score": h.get("improvement_score",0),
+                     "Retained %": round(h.get("retained_pct",0)*100,1)}
+                    for i, h in enumerate(history)
+                ])
+                chart = alt.Chart(df).mark_line(point=True, color="#f0c040").encode(
+                    x=alt.X("Edit:O", title="Edit #"),
+                    y=alt.Y("Improvement Score:Q", scale=alt.Scale(domain=[0,100])),
+                    tooltip=["Edit","Improvement Score","Retained %"],
+                ).properties(
+                    height=180, background="#161b22",
+                    title=alt.TitleParams("Improvement Score Over Time", color="#8b949e", fontSize=11)
+                ).configure_axis(
+                    gridColor="#30363d", labelColor="#8b949e", titleColor="#8b949e"
+                ).configure_view(stroke="#30363d")
+                st.altair_chart(chart, use_container_width=True)
+            except Exception:
+                pass
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 4 — Operator Profile
+# ══════════════════════════════════════════════════════════════════════════════
+with tab4:
+    all_prefs_t4 = list_all_preferences()
+    profile      = load_profile()
+    examples     = list_examples()
+
+    col_prof, col_ex = st.columns([2,3], gap="large")
+
+    with col_prof:
+        st.markdown('<div class="src-label">Operator preference profile</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="info-banner">
+            <strong>What this is:</strong> An aggregated profile of this operator's drafting style,
+            built from all their edits. Used to personalise every new draft automatically.
+        </div>""", unsafe_allow_html=True)
+
+        if st.button("Rebuild Profile from Preferences", use_container_width=True):
+            with st.spinner("Analysing preferences to build profile…"):
+                try:
+                    profile = build_profile(all_prefs_t4)
+                    st.success("Profile updated.")
+                except Exception as e:
+                    st.error(f"Could not build profile: {e}")
+            st.rerun()
+
+        if not profile:
+            st.markdown("""
+            <div class="empty-state">
+                <div class="empty-code">— no profile —</div>
+                <div class="empty-title">Profile not built yet</div>
+                <div class="empty-desc">Submit at least one edit, then click Rebuild Profile.</div>
+            </div>""", unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div class="imp-card" style="border-color:#f0c040;">
+                <div class="imp-title" style="color:#f0c040;">Writing Style</div>
+                <div class="pref-text">{profile.get('writing_style','—')}</div>
+            </div>""", unsafe_allow_html=True)
+
+            for section, label in [
+                ("structure_preferences", "Structure Preferences"),
+                ("content_priorities",    "Content Priorities"),
+                ("common_additions",      "Common Additions"),
+                ("avoid",                 "Things to Avoid"),
+            ]:
+                items = profile.get(section, [])
+                if items:
+                    rows = "".join(f'<div class="pref-row"><div class="pref-dot active"></div>'
+                                   f'<div class="pref-text">{it}</div></div>' for it in items)
+                    st.markdown(f'<div class="src-label">{label}</div>{rows}', unsafe_allow_html=True)
+
+            if profile.get("summary"):
+                st.markdown(f"""
+                <div class="imp-card">
+                    <div class="imp-title">Profile Summary</div>
+                    <div class="pref-text">{profile['summary']}</div>
+                </div>""", unsafe_allow_html=True)
+
+    with col_ex:
+        st.markdown('<div class="src-label">Few-shot gold examples</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="info-banner">
+            <strong>What this is:</strong> Human-approved (query, draft) pairs that scored highly.
+            The system injects the most relevant one into every new draft prompt as a style reference.
+        </div>""", unsafe_allow_html=True)
+
+        if not examples:
+            st.markdown("""
+            <div class="empty-state">
+                <div class="empty-code">— no examples —</div>
+                <div class="empty-title">No gold examples yet</div>
+                <div class="empty-desc">Examples are saved automatically when an edited draft scores above 55/100.</div>
+            </div>""", unsafe_allow_html=True)
+        else:
+            for i, ex in enumerate(examples):
+                score = ex.get("improvement_score", 0)
+                col_e = "#7ee787" if score >= 65 else "#f0c040"
+                with st.expander(f"Example {i+1}  —  score {score:.0f}/100  —  {ex.get('saved_at','')[:10]}"):
+                    st.markdown(f"""
+                    <div class="imp-row" style="margin-bottom:0.5rem;">
+                        <span class="imp-key">Query</span>
+                        <span class="imp-val" style="color:#c9d1d9;">{ex.get('query','')[:80]}</span>
+                    </div>
+                    <div class="imp-row">
+                        <span class="imp-key">Score</span>
+                        <span class="imp-val" style="color:{col_e};">{score:.0f}/100</span>
+                    </div>""", unsafe_allow_html=True)
+                    st.markdown('<div class="col-label" style="margin-top:0.8rem;">Human-approved draft (excerpt)</div>', unsafe_allow_html=True)
+                    st.text_area(f"ex_{i}", value=ex.get("edited_draft","")[:600], height=180,
+                                 disabled=True, label_visibility="collapsed")
+                    if st.button("Delete this example", key=f"del_ex_{i}"):
+                        delete_example(i)
+                        st.rerun()

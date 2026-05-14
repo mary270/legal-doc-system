@@ -115,6 +115,8 @@ def generate_draft(
     query: str,
     retrieved_chunks: list[dict[str, Any]],
     learned_preferences: list[str] | None = None,
+    use_few_shot: bool = True,
+    use_profile: bool = True,
 ) -> dict[str, Any]:
     """
     Generate a grounded case fact summary.
@@ -152,12 +154,39 @@ def generate_draft(
     )
 
     # Learned preferences block
+    pref_lines = []
     if learned_preferences:
-        pref_text = "OPERATOR STYLE PREFERENCES (learned from prior edits — apply these):\n"
-        pref_text += "\n".join(f"- {p}" for p in learned_preferences)
-        preference_block = pref_text
-    else:
-        preference_block = ""
+        pref_lines.append("OPERATOR STYLE PREFERENCES (learned from prior edits — apply these):")
+        pref_lines.extend(f"- {p}" for p in learned_preferences)
+
+    # Operator profile block
+    if use_profile:
+        try:
+            from operator_profile import load_profile, profile_to_prompt_section
+            profile_section = profile_to_prompt_section(load_profile())
+            if profile_section:
+                pref_lines.append("")
+                pref_lines.append(profile_section)
+        except Exception:
+            pass
+
+    # Few-shot example block
+    if use_few_shot:
+        try:
+            from few_shot_store import get_best_example
+            examples = get_best_example(query, n=1)
+            if examples:
+                ex = examples[0]
+                pref_lines.append("")
+                pref_lines.append("GOLD EXAMPLE (human-approved draft on a similar matter — use as style reference):")
+                pref_lines.append(f"Query: {ex['query']}")
+                pref_lines.append("Human-approved output:")
+                pref_lines.append(ex["edited_draft"][:1200])
+                pref_lines.append("--- end of example ---")
+        except Exception:
+            pass
+
+    preference_block = "\n".join(pref_lines)
 
     prompt = _DRAFT_TEMPLATE.format(
         query=query,
