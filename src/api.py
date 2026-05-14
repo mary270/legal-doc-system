@@ -1,6 +1,7 @@
 """
 FastAPI REST API — Legal Document Intelligence System
 Full endpoint coverage: documents, drafts, feedback, preferences, metrics, profile, few-shot, config.
+Serves the UI from /ui/index.html at the root.
 """
 from __future__ import annotations
 
@@ -13,9 +14,15 @@ from typing import Any
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 log = logging.getLogger(__name__)
+
+_UI_DIR     = Path(__file__).parent.parent / "ui"
+_UPLOAD_DIR = Path(__file__).parent.parent / "data" / "uploads"
+_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
     title="Legal Document Intelligence — Pearson Specter Litt",
@@ -33,10 +40,8 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
-
-_UPLOAD_DIR = Path(__file__).parent.parent / "data" / "uploads"
-_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Lazy imports — avoid loading heavy models at import time
 def _processor():
@@ -273,3 +278,18 @@ def build_profile_endpoint() -> dict[str, Any]:
     if not profile:
         raise HTTPException(status_code=400, detail="No preferences available to build profile.")
     return profile
+
+
+# ── UI serving ─────────────────────────────────────────────────────────────────
+
+@app.get("/", include_in_schema=False)
+def serve_ui():
+    """Serve the single-page application."""
+    index = _UI_DIR / "index.html"
+    if index.exists():
+        return FileResponse(str(index), media_type="text/html")
+    return {"message": "UI not found. Place ui/index.html in the project root.", "api_docs": "/docs"}
+
+# Mount static assets (if any CSS/JS files live alongside index.html)
+if _UI_DIR.exists():
+    app.mount("/ui", StaticFiles(directory=str(_UI_DIR), html=True), name="ui_static")

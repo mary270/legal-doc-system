@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pearson Specter Litt — Legal Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: { 950:'#050d1a', 900:'#0a0f1e', 800:'#0d1426', 700:'#111827', 600:'#1a2235', 500:'#1e2d47', 400:'#243350' },
+            blue:  { 700:'#1d4ed8', 600:'#2563eb', 500:'#3b82f6', 400:'#60a5fa' },
+            gold:  { 700:'#b45309', 600:'#d97706', 500:'#f59e0b', 400:'#fbbf24' },
+            slate: { 200:'#e2e8f0', 300:'#cbd5e1', 400:'#94a3b8', 500:'#64748b', 600:'#475569', 700:'#334155' }
+          },
+          fontFamily: { sans:['Inter','system-ui','sans-serif'], mono:['JetBrains Mono','monospace'] }
+        }
+      }
+    };
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0d1426; }
+    ::-webkit-scrollbar-thumb { background: #1e2d47; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2563eb; }
+
+    /* Markdown prose */
+    .prose-legal { color: #cbd5e1; line-height: 1.8; }
+    .prose-legal h1,.prose-legal h2 { color:#f1f5f9; font-weight:700; margin:1.2rem 0 0.5rem; border-bottom:1px solid #1e2d47; padding-bottom:0.4rem; }
+    .prose-legal h3,.prose-legal h4 { color:#e2e8f0; font-weight:600; margin:1rem 0 0.35rem; }
+    .prose-legal p { margin:0.6rem 0; }
+    .prose-legal strong { color:#f1f5f9; font-weight:600; }
+    .prose-legal ul,.prose-legal ol { margin:0.5rem 0 0.5rem 1.4rem; }
+    .prose-legal li { margin:0.25rem 0; }
+    .prose-legal hr { border-color:#1e2d47; margin:1rem 0; }
+    .prose-legal code { background:#111827; color:#60a5fa; padding:0.1rem 0.35rem; border-radius:3px; font-family:'JetBrains Mono',monospace; font-size:0.82em; }
+    .prose-legal blockquote { border-left:3px solid #2563eb; padding-left:0.8rem; color:#94a3b8; margin:0.5rem 0; }
+
+    /* Drag-over state */
+    .drag-over { border-color:#2563eb !important; background:rgba(37,99,235,0.08) !important; }
+
+    /* Transition */
+    .fade-in { animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+    /* Skeleton */
+    .skeleton { background: linear-gradient(90deg,#111827 25%,#1a2235 50%,#111827 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:4px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* Score ring */
+    .score-ring { stroke-dasharray:188.5; stroke-linecap:round; transition:stroke-dashoffset 0.8s ease; }
+
+    /* Toast */
+    #toast { transition: opacity 0.3s, transform 0.3s; }
+
+    /* Active nav */
+    .nav-active { background:rgba(37,99,235,0.15); border-left:2px solid #2563eb; color:#60a5fa !important; }
+    .nav-item:hover:not(.nav-active) { background:rgba(30,45,71,0.5); }
+  </style>
+</head>
+
+<body class="bg-navy-900 text-slate-200 h-full overflow-hidden flex">
+
+<!-- ═══════════════════════════════════════════════════════ SIDEBAR -->
+<aside class="w-64 bg-navy-800 border-r border-navy-500 flex flex-col flex-shrink-0 h-screen">
+
+  <!-- Logo -->
+  <div class="px-5 py-5 border-b border-navy-500">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <div class="text-sm font-bold text-slate-200 tracking-tight leading-tight">Pearson Specter Litt</div>
+        <div class="text-xs text-slate-500 leading-tight">Legal Intelligence</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="px-3 py-4 space-y-1 flex-shrink-0">
+    <button onclick="setView('ingest')" id="nav-ingest" class="nav-item nav-active w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-all text-slate-300 text-sm font-medium border-l-2 border-transparent">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div>
+        <div class="leading-tight">Ingest</div>
+        <div class="text-xs text-slate-500 font-normal leading-tight">Upload &amp; index documents</div>
+      </div>
+    </button>
+
+    <button onclick="setView('analyze')" id="nav-analyze" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-all text-slate-400 text-sm font-medium border-l-2 border-transparent">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <div>
+        <div class="leading-tight">Analyze</div>
+        <div class="text-xs text-slate-500 font-normal leading-tight">Generate legal drafts</div>
+      </div>
+    </button>
+
+    <button onclick="setView('learn')" id="nav-learn" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-all text-slate-400 text-sm font-medium border-l-2 border-transparent">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      <div>
+        <div class="leading-tight">Edit &amp; Learn</div>
+        <div class="text-xs text-slate-500 font-normal leading-tight">Refine and train</div>
+      </div>
+    </button>
+
+    <button onclick="setView('intelligence')" id="nav-intelligence" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-all text-slate-400 text-sm font-medium border-l-2 border-transparent">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <div>
+        <div class="leading-tight">Intelligence</div>
+        <div class="text-xs text-slate-500 font-normal leading-tight">Metrics &amp; learning</div>
+      </div>
+    </button>
+  </nav>
+
+  <!-- Divider -->
+  <div class="mx-3 border-t border-navy-500"></div>
+
+  <!-- Document Library -->
+  <div class="flex-1 overflow-y-auto px-3 py-3">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Documents</span>
+      <button onclick="loadDocuments()" class="text-slate-600 hover:text-slate-400 transition-colors p-0.5">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </button>
+    </div>
+
+    <!-- Scope: All Docs -->
+    <button onclick="selectDoc(null, 'All Documents')"
+            id="scope-all"
+            class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:bg-navy-600 transition-colors mb-1 flex items-center gap-1.5 border border-navy-500 bg-navy-700">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>
+      All Documents
+    </button>
+
+    <div id="doc-library" class="space-y-1">
+      <div class="skeleton h-8 w-full"></div>
+      <div class="skeleton h-8 w-full opacity-60"></div>
+    </div>
+  </div>
+
+  <!-- Stats bar -->
+  <div id="sidebar-stats" class="px-3 py-3 border-t border-navy-500">
+    <div class="grid grid-cols-3 gap-1 text-center">
+      <div class="bg-navy-700 rounded px-1 py-1.5">
+        <div id="stat-docs" class="text-sm font-bold text-blue-400">—</div>
+        <div class="text-xs text-slate-600">Docs</div>
+      </div>
+      <div class="bg-navy-700 rounded px-1 py-1.5">
+        <div id="stat-prefs" class="text-sm font-bold text-gold-400">—</div>
+        <div class="text-xs text-slate-600">Prefs</div>
+      </div>
+      <div class="bg-navy-700 rounded px-1 py-1.5">
+        <div id="stat-edits" class="text-sm font-bold text-slate-400">—</div>
+        <div class="text-xs text-slate-600">Edits</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════ MAIN -->
+<main class="flex-1 overflow-hidden flex flex-col h-screen">
+
+  <!-- Top bar -->
+  <header class="h-12 border-b border-navy-500 bg-navy-800 flex items-center justify-between px-6 flex-shrink-0">
+    <div class="flex items-center gap-3">
+      <h1 id="page-title" class="text-sm font-semibold text-slate-200">Document Ingest</h1>
+      <div id="scope-badge" class="hidden items-center gap-1.5 bg-blue-600/10 border border-blue-600/30 rounded px-2 py-0.5">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>
+        <span id="scope-badge-text" class="text-xs text-blue-400 font-medium"></span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <div id="api-status" class="flex items-center gap-1.5 text-xs text-slate-500">
+        <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+        API Connected
+      </div>
+    </div>
+  </header>
+
+  <!-- Views -->
+  <div class="flex-1 overflow-y-auto">
+
+    <!-- ── INGEST VIEW ─────────────────────────────────────────── -->
+    <div id="view-ingest" class="p-6 fade-in">
+      <!-- Upload zone -->
+      <div id="drop-zone"
+           class="border-2 border-dashed border-navy-500 rounded-xl p-10 text-center cursor-pointer hover:border-blue-600 hover:bg-blue-600/5 transition-all group"
+           onclick="document.getElementById('file-input').click()"
+           ondragover="onDragOver(event)"
+           ondragleave="onDragLeave(event)"
+           ondrop="onDrop(event)">
+        <div class="w-14 h-14 bg-navy-700 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600/10 transition-colors">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <p class="text-slate-300 font-medium mb-1">Drop a legal document here</p>
+        <p class="text-slate-500 text-sm mb-3">PDF, TXT, PNG, JPG, TIFF — scanned or noisy files welcome</p>
+        <span class="bg-blue-600 text-white text-xs font-semibold px-4 py-2 rounded-md hover:bg-blue-500 transition-colors inline-block">Choose File</span>
+        <input type="file" id="file-input" class="hidden" accept=".pdf,.txt,.png,.jpg,.jpeg,.tiff,.tif,.bmp,.md,.rtf" onchange="handleFileSelect(event)" />
+      </div>
+
+      <!-- Upload progress -->
+      <div id="upload-progress" class="hidden mt-4 bg-navy-700 border border-navy-500 rounded-xl p-5">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+          <div>
+            <div class="text-sm font-medium text-slate-200">Processing document…</div>
+            <div id="upload-filename" class="text-xs text-slate-500"></div>
+          </div>
+        </div>
+        <div class="flex gap-2 text-xs">
+          <span id="step-extract" class="px-2 py-1 rounded bg-gold-600/15 text-gold-400 border border-gold-600/30">01 Extract</span>
+          <span id="step-structure" class="px-2 py-1 rounded bg-navy-600 text-slate-500 border border-navy-500">02 Structure</span>
+          <span id="step-index" class="px-2 py-1 rounded bg-navy-600 text-slate-500 border border-navy-500">03 Index</span>
+        </div>
+      </div>
+
+      <!-- Upload result -->
+      <div id="upload-result" class="hidden mt-4 bg-green-900/20 border border-green-700/30 rounded-xl p-5 fade-in">
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 bg-green-900/30 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold text-green-400 mb-2">Document indexed successfully</div>
+            <div id="result-grid" class="grid grid-cols-2 gap-3 text-sm"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document library table -->
+      <div class="mt-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-semibold text-slate-300">Indexed Documents</h2>
+          <button onclick="loadDocuments()" class="text-xs text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Refresh
+          </button>
+        </div>
+        <div id="doc-table-wrapper">
+          <div id="doc-table-empty" class="bg-navy-700 border border-navy-500 rounded-xl p-10 text-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5" class="mx-auto mb-3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <p class="text-slate-600 text-sm">No documents indexed yet. Upload a file above.</p>
+          </div>
+          <div id="doc-table" class="hidden bg-navy-700 border border-navy-500 rounded-xl overflow-hidden">
+            <table class="w-full text-sm">
+              <thead class="border-b border-navy-500">
+                <tr class="text-left text-xs text-slate-500 uppercase tracking-wider">
+                  <th class="px-4 py-3 font-medium">Document</th>
+                  <th class="px-4 py-3 font-medium">Type</th>
+                  <th class="px-4 py-3 font-medium">Summary</th>
+                  <th class="px-4 py-3 font-medium w-20"></th>
+                </tr>
+              </thead>
+              <tbody id="doc-table-body" class="divide-y divide-navy-500"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANALYZE VIEW ─────────────────────────────────────────── -->
+    <div id="view-analyze" class="hidden p-6 fade-in">
+      <!-- Scope banner -->
+      <div id="analyze-scope-banner" class="mb-4 flex items-center justify-between px-4 py-2.5 rounded-lg border text-sm">
+        <!-- filled by JS -->
+      </div>
+
+      <!-- Query -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Matter or Question</label>
+        <textarea id="query-input"
+                  placeholder="Describe the matter to analyze — e.g. &quot;Summarise key parties, obligations, and any disputes in this lease agreement.&quot;"
+                  rows="3"
+                  class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-3 text-slate-200 text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 resize-none transition-colors"></textarea>
+        <!-- Quick chips -->
+        <div class="flex flex-wrap gap-1.5 mt-2">
+          <span class="text-xs text-slate-600 mr-1 self-center">Quick:</span>
+          <button onclick="setQuery('Summarise all key facts, parties, obligations and dates in this document.')" class="text-xs bg-navy-700 border border-navy-500 text-slate-400 px-2 py-1 rounded hover:border-blue-500 hover:text-blue-400 transition-colors">Key facts &amp; parties</button>
+          <button onclick="setQuery('What are the payment terms, amounts, and deadlines?')" class="text-xs bg-navy-700 border border-navy-500 text-slate-400 px-2 py-1 rounded hover:border-blue-500 hover:text-blue-400 transition-colors">Payment terms</button>
+          <button onclick="setQuery('Identify any breach of contract, default, or dispute claims.')" class="text-xs bg-navy-700 border border-navy-500 text-slate-400 px-2 py-1 rounded hover:border-blue-500 hover:text-blue-400 transition-colors">Disputes &amp; breach</button>
+          <button onclick="setQuery('List all obligations, conditions, and key dates.')" class="text-xs bg-navy-700 border border-navy-500 text-slate-400 px-2 py-1 rounded hover:border-blue-500 hover:text-blue-400 transition-colors">Obligations &amp; dates</button>
+        </div>
+      </div>
+
+      <!-- Controls row -->
+      <div class="flex items-center gap-4 mb-5">
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-slate-500">Passages</label>
+          <input type="range" id="n-results" min="3" max="15" value="8" oninput="document.getElementById('n-results-val').textContent=this.value"
+                 class="w-24 accent-blue-600" />
+          <span id="n-results-val" class="text-xs font-mono text-blue-400 w-4">8</span>
+        </div>
+        <label class="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer select-none">
+          <input type="checkbox" id="use-few-shot" checked class="accent-blue-600 w-3 h-3" /> Few-shot
+        </label>
+        <label class="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer select-none">
+          <input type="checkbox" id="use-profile" checked class="accent-blue-600 w-3 h-3" /> Profile
+        </label>
+        <div class="flex-1"></div>
+        <button onclick="generateDraft()"
+                id="gen-btn"
+                class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Generate Draft
+        </button>
+      </div>
+
+      <!-- Loading skeleton -->
+      <div id="draft-loading" class="hidden">
+        <div class="flex items-center gap-2 mb-4 text-sm text-blue-400">
+          <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          Retrieving evidence and generating grounded draft…
+        </div>
+        <div class="grid grid-cols-5 gap-4">
+          <div class="col-span-3 space-y-3">
+            <div class="skeleton h-5 w-48"></div>
+            <div class="skeleton h-4 w-full"></div>
+            <div class="skeleton h-4 w-5/6"></div>
+            <div class="skeleton h-4 w-full"></div>
+            <div class="skeleton h-4 w-4/5"></div>
+            <div class="skeleton h-5 w-36 mt-4"></div>
+            <div class="skeleton h-4 w-full"></div>
+            <div class="skeleton h-4 w-3/4"></div>
+          </div>
+          <div class="col-span-2 space-y-3">
+            <div class="skeleton h-24 w-full"></div>
+            <div class="skeleton h-24 w-full opacity-70"></div>
+            <div class="skeleton h-24 w-full opacity-40"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Draft + Sources -->
+      <div id="draft-output" class="hidden grid grid-cols-5 gap-4 fade-in">
+        <!-- Draft panel -->
+        <div class="col-span-3">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Generated Draft</span>
+              <span id="prefs-applied-badge" class="hidden text-xs bg-gold-600/15 text-gold-400 border border-gold-600/30 px-1.5 py-0.5 rounded"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="copyDraft()" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 transition-colors">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+              <button onclick="downloadDraft()" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 transition-colors">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download
+              </button>
+              <button onclick="goToLearn()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded flex items-center gap-1 transition-colors">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit &amp; Train
+              </button>
+            </div>
+          </div>
+          <div id="draft-content" class="bg-navy-700 border border-navy-500 rounded-xl p-5 prose-legal min-h-64 overflow-y-auto max-h-[60vh]"></div>
+        </div>
+
+        <!-- Sources panel -->
+        <div class="col-span-2">
+          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+            Evidence Retrieved
+            <span class="ml-1 text-slate-600 font-normal normal-case" id="evidence-count"></span>
+          </div>
+          <div id="sources-list" class="space-y-2 overflow-y-auto max-h-[60vh]"></div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="analyze-empty" class="mt-8 text-center py-12">
+        <div class="w-16 h-16 bg-navy-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <p class="text-slate-500 font-medium mb-1">No draft generated yet</p>
+        <p class="text-slate-600 text-sm">Enter a question above and click Generate Draft.</p>
+      </div>
+    </div>
+
+    <!-- ── LEARN VIEW ─────────────────────────────────────────── -->
+    <div id="view-learn" class="hidden p-6 fade-in">
+      <div id="learn-no-draft" class="text-center py-16 hidden">
+        <div class="w-16 h-16 bg-navy-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <p class="text-slate-500 font-medium mb-1">No draft to edit</p>
+        <p class="text-slate-600 text-sm mb-4">Generate a draft in the Analyze view first.</p>
+        <button onclick="setView('analyze')" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-colors">Go to Analyze</button>
+      </div>
+
+      <div id="learn-content" class="hidden">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-sm font-semibold text-slate-300">Edit the draft and train the system</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Make any changes in the right panel. The AI will learn your style preferences.</p>
+          </div>
+          <button onclick="submitFeedback()" id="submit-btn"
+                  class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-colors flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Submit &amp; Train
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <!-- Original -->
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <div class="w-2 h-2 rounded-full bg-slate-500"></div>
+              Original AI Draft
+            </div>
+            <div id="original-display" class="bg-navy-700 border border-navy-500 rounded-xl p-4 prose-legal overflow-y-auto max-h-[52vh] text-sm"></div>
+          </div>
+          <!-- Editable -->
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+              Your Edited Version
+            </div>
+            <textarea id="edit-area"
+                      class="w-full bg-navy-700 border border-navy-500 rounded-xl p-4 text-slate-200 text-sm font-mono leading-relaxed focus:outline-none focus:border-blue-500 resize-none overflow-y-auto"
+                      style="height:52vh; max-height:52vh;"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback result -->
+      <div id="feedback-result" class="hidden mt-4 fade-in">
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Training Results</div>
+        <div class="grid grid-cols-4 gap-3 mb-4" id="metrics-cards"></div>
+        <div id="prefs-extracted-section" class="hidden bg-navy-700 border border-navy-500 rounded-xl p-4">
+          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Preferences Learned</div>
+          <div id="prefs-extracted-list" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── INTELLIGENCE VIEW ─────────────────────────────────────── -->
+    <div id="view-intelligence" class="hidden p-6 fade-in">
+      <!-- Summary cards -->
+      <div class="grid grid-cols-4 gap-3 mb-6" id="intel-summary-cards">
+        <div class="skeleton h-24 rounded-xl"></div>
+        <div class="skeleton h-24 rounded-xl opacity-80"></div>
+        <div class="skeleton h-24 rounded-xl opacity-60"></div>
+        <div class="skeleton h-24 rounded-xl opacity-40"></div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-5">
+        <!-- Edit history -->
+        <div class="bg-navy-700 border border-navy-500 rounded-xl overflow-hidden">
+          <div class="px-4 py-3 border-b border-navy-500 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Edit History</span>
+            <span id="intel-edit-count" class="text-xs text-slate-600">—</span>
+          </div>
+          <div id="intel-history" class="overflow-y-auto max-h-64 divide-y divide-navy-500">
+            <div class="p-4 text-center text-slate-600 text-sm">Loading…</div>
+          </div>
+        </div>
+
+        <!-- Active preferences -->
+        <div class="bg-navy-700 border border-navy-500 rounded-xl overflow-hidden">
+          <div class="px-4 py-3 border-b border-navy-500 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Learned Preferences</span>
+            <span id="intel-pref-count" class="text-xs text-slate-600">—</span>
+          </div>
+          <div id="intel-prefs" class="overflow-y-auto max-h-64 divide-y divide-navy-500">
+            <div class="p-4 text-center text-slate-600 text-sm">Loading…</div>
+          </div>
+        </div>
+
+        <!-- Operator profile -->
+        <div class="bg-navy-700 border border-navy-500 rounded-xl overflow-hidden col-span-2">
+          <div class="px-4 py-3 border-b border-navy-500 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Operator Profile</span>
+            <button onclick="buildProfile()" id="profile-btn"
+                    class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded transition-colors flex items-center gap-1">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Rebuild
+            </button>
+          </div>
+          <div id="intel-profile" class="p-4">
+            <div class="text-sm text-slate-600">Loading profile…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /overflow-y-auto -->
+</main>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 opacity-0 translate-y-2 pointer-events-none">
+  <div id="toast-inner" class="flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl text-sm font-medium max-w-sm">
+    <span id="toast-icon"></span>
+    <span id="toast-msg"></span>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+const state = {
+  view: 'ingest',
+  selectedDocId: null,
+  selectedDocName: 'All Documents',
+  lastDraft: '',
+  lastQuery: '',
+  lastSources: [],
+  documents: [],
+};
+
+// ══════════════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════════════
+const VIEW_TITLES = { ingest:'Document Ingest', analyze:'Analyze & Draft', learn:'Edit & Learn', intelligence:'Intelligence Hub' };
+
+function setView(v) {
+  state.view = v;
+  document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById(`view-${v}`).classList.remove('hidden');
+  document.getElementById(`view-${v}`).classList.add('fade-in');
+
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('nav-active'));
+  document.getElementById(`nav-${v}`).classList.add('nav-active');
+  document.getElementById('page-title').textContent = VIEW_TITLES[v];
+
+  if (v === 'analyze') renderAnalyzeBanner();
+  if (v === 'learn')   renderLearnView();
+  if (v === 'intelligence') loadIntelligence();
+}
+
+function goToLearn() { setView('learn'); }
+
+// ══════════════════════════════════════════════════════════════
+// DOCUMENT SELECTION
+// ══════════════════════════════════════════════════════════════
+function selectDoc(docId, docName) {
+  const changed = docId !== state.selectedDocId;
+  state.selectedDocId = docId;
+  state.selectedDocName = docName || 'All Documents';
+
+  if (changed) {
+    state.lastDraft = '';
+    state.lastQuery = '';
+    state.lastSources = [];
+  }
+
+  renderSidebarLibrary();
+  updateScopeBadge();
+  if (changed && state.view === 'analyze') renderAnalyzeBanner();
+  if (docId) setView('analyze');
+}
+
+function updateScopeBadge() {
+  const badge = document.getElementById('scope-badge');
+  const text  = document.getElementById('scope-badge-text');
+  if (state.selectedDocId) {
+    badge.classList.remove('hidden');
+    badge.classList.add('flex');
+    text.textContent = state.selectedDocName;
+  } else {
+    badge.classList.add('hidden');
+    badge.classList.remove('flex');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// API HELPERS
+// ══════════════════════════════════════════════════════════════
+async function api(path, opts={}) {
+  const r = await fetch(path, opts);
+  if (!r.ok) { const t = await r.text(); throw new Error(t || r.statusText); }
+  return r.json();
+}
+
+// ══════════════════════════════════════════════════════════════
+// DOCUMENTS
+// ══════════════════════════════════════════════════════════════
+async function loadDocuments() {
+  try {
+    state.documents = await api('/documents');
+    renderSidebarLibrary();
+    renderDocTable();
+    updateStats();
+  } catch(e) { console.warn('loadDocuments:', e); }
+}
+
+function renderSidebarLibrary() {
+  const lib = document.getElementById('doc-library');
+  if (!state.documents.length) { lib.innerHTML = '<div class="text-xs text-slate-600 text-center py-2">No documents</div>'; return; }
+
+  const scopeAll = document.getElementById('scope-all');
+  if (state.selectedDocId === null) {
+    scopeAll.className = scopeAll.className.replace('text-slate-400','text-blue-400').replace('border-navy-500','border-blue-600/40').replace('bg-navy-700','bg-blue-600/10');
+  } else {
+    scopeAll.className = 'w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:bg-navy-600 transition-colors mb-1 flex items-center gap-1.5 border border-navy-500 bg-navy-700';
+  }
+
+  lib.innerHTML = state.documents.map(d => {
+    const active = d.doc_id === state.selectedDocId;
+    const name = d.file_name.length > 22 ? d.file_name.slice(0,20)+'…' : d.file_name;
+    const typeColor = {contract:'text-blue-400',notice:'text-red-400',memo:'text-green-400',deed:'text-yellow-400'}[d.document_type] || 'text-slate-400';
+    return `<button onclick="selectDoc('${d.doc_id}','${d.file_name.replace(/'/g,"\\'")}')"
+              class="w-full text-left px-2.5 py-2 rounded text-xs transition-all ${active ? 'bg-blue-600/15 border border-blue-600/40 text-blue-300' : 'text-slate-400 hover:bg-navy-600 border border-transparent'}">
+      <div class="font-medium leading-tight truncate">${name}</div>
+      <div class="text-xs ${typeColor} mt-0.5 capitalize">${d.document_type || 'document'}</div>
+    </button>`;
+  }).join('');
+}
+
+function renderDocTable() {
+  const empty = document.getElementById('doc-table-empty');
+  const table = document.getElementById('doc-table');
+  const tbody  = document.getElementById('doc-table-body');
+
+  if (!state.documents.length) { empty.classList.remove('hidden'); table.classList.add('hidden'); return; }
+  empty.classList.add('hidden');
+  table.classList.remove('hidden');
+
+  const typeColors = {contract:'bg-blue-900/30 text-blue-400 border-blue-700/30', notice:'bg-red-900/30 text-red-400 border-red-700/30', memo:'bg-green-900/30 text-green-400 border-green-700/30', deed:'bg-yellow-900/30 text-yellow-400 border-yellow-700/30'};
+  tbody.innerHTML = state.documents.map(d => {
+    const tc = typeColors[d.document_type] || 'bg-slate-800 text-slate-400 border-slate-700';
+    return `<tr class="hover:bg-navy-600 transition-colors">
+      <td class="px-4 py-3">
+        <div class="font-medium text-slate-200 text-sm">${d.file_name}</div>
+        <div class="text-xs text-slate-500 font-mono">${d.doc_id.slice(0,12)}…</div>
+      </td>
+      <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded border ${tc} capitalize">${d.document_type||'unknown'}</span></td>
+      <td class="px-4 py-3 text-slate-400 text-xs max-w-xs truncate">${d.summary||'—'}</td>
+      <td class="px-4 py-3 text-right">
+        <button onclick="deleteDoc('${d.doc_id}')" class="text-xs text-slate-600 hover:text-red-400 transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function deleteDoc(docId) {
+  if (!confirm('Remove this document from the index?')) return;
+  try {
+    await api(`/documents/${docId}`, {method:'DELETE'});
+    if (state.selectedDocId === docId) selectDoc(null, 'All Documents');
+    await loadDocuments();
+    showToast('Document removed.', 'success');
+  } catch(e) { showToast('Delete failed: '+e.message, 'error'); }
+}
+
+function updateStats() {
+  document.getElementById('stat-docs').textContent = state.documents.length;
+}
+
+// ══════════════════════════════════════════════════════════════
+// UPLOAD
+// ══════════════════════════════════════════════════════════════
+function onDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function onDragLeave(e) { document.getElementById('drop-zone').classList.remove('drag-over'); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) uploadFile(f);
+}
+function handleFileSelect(e) { const f = e.target.files[0]; if(f) uploadFile(f); }
+
+async function uploadFile(file) {
+  document.getElementById('drop-zone').classList.add('hidden');
+  document.getElementById('upload-result').classList.add('hidden');
+  document.getElementById('upload-progress').classList.remove('hidden');
+  document.getElementById('upload-filename').textContent = file.name;
+
+  // Animate steps
+  const animate = (step, done) => {
+    const el = document.getElementById(`step-${step}`);
+    if (done) { el.className = 'px-2 py-1 rounded bg-green-900/20 text-green-400 border border-green-700/30'; }
+    else { el.className = 'px-2 py-1 rounded bg-gold-600/15 text-gold-400 border border-gold-600/30'; }
+  };
+  animate('extract', false);
+  setTimeout(() => { animate('extract', true); animate('structure', false); }, 800);
+  setTimeout(() => { animate('structure', true); animate('index', false); }, 1600);
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const result = await api('/documents/upload', { method:'POST', body:fd });
+
+    animate('index', true);
+    setTimeout(async () => {
+      document.getElementById('upload-progress').classList.add('hidden');
+      document.getElementById('drop-zone').classList.remove('hidden');
+      document.getElementById('drop-zone').querySelector('input[type=file]').value='';
+
+      // Show result
+      const grid = document.getElementById('result-grid');
+      const sf = result.structured_fields || {};
+      grid.innerHTML = `
+        <div class="bg-navy-800 rounded-lg p-3">
+          <div class="text-xs text-slate-500 mb-1">File</div>
+          <div class="text-slate-200 font-medium text-sm truncate">${result.file_name}</div>
+        </div>
+        <div class="bg-navy-800 rounded-lg p-3">
+          <div class="text-xs text-slate-500 mb-1">Chunks indexed</div>
+          <div class="text-green-400 font-bold">${result.chunks_indexed}</div>
+        </div>
+        <div class="bg-navy-800 rounded-lg p-3 col-span-2">
+          <div class="text-xs text-slate-500 mb-1">Document type</div>
+          <div class="text-slate-200 text-sm capitalize">${sf.document_type || 'unknown'}</div>
+        </div>
+        <div class="bg-navy-800 rounded-lg p-3 col-span-2">
+          <div class="text-xs text-slate-500 mb-1">Summary</div>
+          <div class="text-slate-300 text-xs leading-relaxed">${sf.summary || '—'}</div>
+        </div>`;
+      document.getElementById('upload-result').classList.remove('hidden');
+
+      await loadDocuments();
+      showToast(`${result.file_name} indexed — ${result.chunks_indexed} chunks.`, 'success');
+    }, 600);
+  } catch(e) {
+    document.getElementById('upload-progress').classList.add('hidden');
+    document.getElementById('drop-zone').classList.remove('hidden');
+    showToast('Upload failed: ' + (e.message||'Unknown error'), 'error');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ANALYZE
+// ══════════════════════════════════════════════════════════════
+function renderAnalyzeBanner() {
+  const banner = document.getElementById('analyze-scope-banner');
+  if (state.selectedDocId) {
+    banner.className = 'mb-4 flex items-center justify-between px-4 py-2.5 rounded-lg border text-sm bg-blue-900/15 border-blue-700/30';
+    banner.innerHTML = `<div class="flex items-center gap-2 text-blue-300">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>
+      <span>Scoped to: <strong>${state.selectedDocName}</strong></span>
+      <span class="text-blue-500/60 text-xs">— analysis uses only this document</span>
+    </div>
+    <button onclick="selectDoc(null,'All Documents');renderAnalyzeBanner();" class="text-xs text-blue-500 hover:text-blue-300 transition-colors">Clear scope</button>`;
+  } else {
+    banner.className = 'mb-4 flex items-center justify-between px-4 py-2.5 rounded-lg border text-sm bg-navy-700 border-navy-500';
+    banner.innerHTML = `<div class="flex items-center gap-2 text-slate-400">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+      <span>All Documents — <span class="text-slate-500">select a specific document in the sidebar to scope results</span></span>
+    </div>`;
+  }
+}
+
+function setQuery(q) { document.getElementById('query-input').value = q; }
+
+async function generateDraft() {
+  const query = document.getElementById('query-input').value.trim();
+  if (!query) { showToast('Enter a question first.', 'warning'); return; }
+
+  document.getElementById('analyze-empty').classList.add('hidden');
+  document.getElementById('draft-output').classList.add('hidden');
+  document.getElementById('draft-loading').classList.remove('hidden');
+  document.getElementById('gen-btn').disabled = true;
+
+  try {
+    const n = parseInt(document.getElementById('n-results').value);
+    const useFewShot = document.getElementById('use-few-shot').checked;
+    const useProfile = document.getElementById('use-profile').checked;
+
+    const params = new URLSearchParams({ query, n_results:n, use_few_shot:useFewShot, use_profile:useProfile });
+    if (state.selectedDocId) params.set('doc_id_filter', state.selectedDocId);
+
+    // POST to /drafts/generate with JSON body
+    const result = await api('/drafts/generate', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        query,
+        n_results: n,
+        doc_id_filter: state.selectedDocId || undefined,
+        use_few_shot: useFewShot,
+        use_profile: useProfile,
+      })
+    });
+
+    state.lastDraft = result.draft;
+    state.lastQuery = query;
+    state.lastSources = result.sources || [];
+
+    document.getElementById('draft-loading').classList.add('hidden');
+    document.getElementById('draft-output').classList.remove('hidden');
+
+    // Render draft
+    document.getElementById('draft-content').innerHTML = marked.parse(result.draft || '');
+
+    // Prefs badge
+    const pb = document.getElementById('prefs-applied-badge');
+    if (result.preferences_applied > 0) {
+      pb.textContent = `${result.preferences_applied} prefs applied`;
+      pb.classList.remove('hidden');
+    } else { pb.classList.add('hidden'); }
+
+    // Sources
+    document.getElementById('evidence-count').textContent = `(${result.sources.length} passages)`;
+    const srcList = document.getElementById('sources-list');
+    srcList.innerHTML = result.sources.map(s => {
+      const pct = Math.round((s.relevance_score||0)*100);
+      const barColor = pct >= 80 ? 'bg-green-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-yellow-500' : 'bg-slate-500';
+      return `<div class="bg-navy-700 border border-navy-500 rounded-lg p-3 hover:border-navy-400 transition-colors">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-bold text-gold-400 font-mono">Source ${s.source_number}</span>
+          <span class="text-xs text-slate-500">${pct}% match</span>
+        </div>
+        <div class="w-full bg-navy-600 rounded-full h-1 mb-2">
+          <div class="${barColor} h-1 rounded-full" style="width:${pct}%"></div>
+        </div>
+        <div class="text-xs text-slate-500 mb-1.5 truncate font-mono">${s.file_name}</div>
+        <div class="text-xs text-slate-400 leading-relaxed line-clamp-3">${s.excerpt||''}</div>
+      </div>`;
+    }).join('');
+
+    showToast('Draft generated successfully.', 'success');
+  } catch(e) {
+    document.getElementById('draft-loading').classList.add('hidden');
+    document.getElementById('analyze-empty').classList.remove('hidden');
+    showToast('Generation failed: '+e.message, 'error');
+  } finally {
+    document.getElementById('gen-btn').disabled = false;
+  }
+}
+
+function copyDraft() {
+  navigator.clipboard.writeText(state.lastDraft).then(() => showToast('Copied to clipboard.', 'success'));
+}
+
+function downloadDraft() {
+  if (!state.lastDraft) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([state.lastDraft], {type:'text/markdown'}));
+  a.download = 'case_fact_summary.md';
+  a.click();
+}
+
+// ══════════════════════════════════════════════════════════════
+// LEARN
+// ══════════════════════════════════════════════════════════════
+function renderLearnView() {
+  if (!state.lastDraft) {
+    document.getElementById('learn-no-draft').classList.remove('hidden');
+    document.getElementById('learn-content').classList.add('hidden');
+    document.getElementById('feedback-result').classList.add('hidden');
+    return;
+  }
+  document.getElementById('learn-no-draft').classList.add('hidden');
+  document.getElementById('learn-content').classList.remove('hidden');
+  document.getElementById('feedback-result').classList.add('hidden');
+  document.getElementById('original-display').innerHTML = marked.parse(state.lastDraft);
+  document.getElementById('edit-area').value = state.lastDraft;
+}
+
+async function submitFeedback() {
+  const edited = document.getElementById('edit-area').value;
+  if (!edited.trim()) { showToast('The edited draft is empty.', 'warning'); return; }
+
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-btn').innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Training…`;
+
+  try {
+    const docNames = state.lastSources.map(s => s.file_name).filter(Boolean);
+    const result = await api('/drafts/feedback', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ original_draft:state.lastDraft, edited_draft:edited, query:state.lastQuery, doc_names:docNames })
+    });
+
+    const m = result.edit_metrics || {};
+    const score = m.improvement_score || 0;
+    const scoreColor = score >= 75 ? 'text-green-400' : score >= 50 ? 'text-yellow-400' : 'text-red-400';
+    const scoreRing  = score >= 75 ? 'stroke-green-500' : score >= 50 ? 'stroke-yellow-500' : 'stroke-red-500';
+
+    document.getElementById('metrics-cards').innerHTML = `
+      <div class="bg-navy-700 border border-navy-500 rounded-xl p-4 text-center">
+        <svg width="56" height="56" viewBox="0 0 56 56" class="mx-auto mb-2">
+          <circle cx="28" cy="28" r="24" fill="none" stroke="#1e2d47" stroke-width="4"/>
+          <circle cx="28" cy="28" r="24" fill="none" stroke-width="4" class="${scoreRing} score-ring"
+            stroke-dashoffset="${188.5 - (188.5 * score/100)}" transform="rotate(-90 28 28)"/>
+        </svg>
+        <div class="text-2xl font-bold ${scoreColor}">${score.toFixed(0)}</div>
+        <div class="text-xs text-slate-500 mt-0.5">Improvement Score</div>
+      </div>
+      <div class="bg-navy-700 border border-navy-500 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-blue-400 mt-4">${((m.retained_pct||0)*100).toFixed(0)}%</div>
+        <div class="text-xs text-slate-500 mt-1">Content Retained</div>
+        <div class="text-xs text-slate-600 mt-1">AI draft kept</div>
+      </div>
+      <div class="bg-navy-700 border border-navy-500 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-gold-400 mt-4">${((m.edit_distance_pct||0)*100).toFixed(0)}%</div>
+        <div class="text-xs text-slate-500 mt-1">Edit Distance</div>
+        <div class="text-xs text-slate-600 mt-1">Characters changed</div>
+      </div>
+      <div class="bg-navy-700 border border-navy-500 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-green-400 mt-4">${result.preferences_extracted?.length||0}</div>
+        <div class="text-xs text-slate-500 mt-1">Prefs Learned</div>
+        <div class="text-xs text-slate-600 mt-1">Applied to future drafts</div>
+      </div>`;
+
+    const prefs = result.preferences_extracted || [];
+    if (prefs.length > 0) {
+      document.getElementById('prefs-extracted-section').classList.remove('hidden');
+      document.getElementById('prefs-extracted-list').innerHTML = prefs.map(p =>
+        `<div class="flex items-start gap-2 text-sm">
+          <svg class="flex-shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="text-slate-300">${p}</span>
+        </div>`
+      ).join('');
+    } else {
+      document.getElementById('prefs-extracted-section').classList.add('hidden');
+    }
+
+    document.getElementById('feedback-result').classList.remove('hidden');
+    showToast(result.message || 'Training complete.', 'success');
+    await loadStats();
+  } catch(e) {
+    showToast('Training failed: '+e.message, 'error');
+  } finally {
+    document.getElementById('submit-btn').disabled = false;
+    document.getElementById('submit-btn').innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Submit &amp; Train`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// INTELLIGENCE
+// ══════════════════════════════════════════════════════════════
+async function loadIntelligence() {
+  // Summary cards
+  try {
+    const s = await api('/metrics/summary');
+    const trend = (s.score_trend||0);
+    const trendColor = trend > 0 ? 'text-green-400' : trend < 0 ? 'text-red-400' : 'text-slate-400';
+    const trendIcon  = trend > 0 ? '↑' : trend < 0 ? '↓' : '→';
+    document.getElementById('intel-summary-cards').innerHTML = `
+      <div class="bg-navy-700 border border-navy-500 rounded-xl p-4">
+        <div class="text-2xl font-bold text-blue-400">${s.total_edits||0}</div>
+        <div class="text-xs text-slate-500 mt-1">Total Edits</div>
+        <div class="text-xs text-slate-600 mt-0.5">Training sessions</div>
+      </div>
+      <div class="bg-navy-700 border border-navy-500 rounded-xl p-4">
+        <div class="text-2xl font-bold text-gold-400">${(s.avg_improvement_score||0).toFixed(1)}</div>
+        <div class="text-xs text-slate-500 mt-1">Avg Score</div>
+        <div class="text-xs text-slate-600 mt-0.5">0–100 scale</div>
+      </div>
+      <div class="bg-navy-700 border border-navy-500 rounded-xl p-4">
+        <div class="text-2xl font-bold ${trendColor}">${trendIcon} ${Math.abs(trend).toFixed(1)}</div>
+        <div class="text-xs text-slate-500 mt-1">Score Trend</div>
+        <div class="text-xs text-slate-600 mt-0.5">${trend > 0 ? 'Improving' : trend < 0 ? 'Declining' : 'Stable'}</div>
+      </div>
+      <div class="bg-navy-700 border border-navy-500 rounded-xl p-4">
+        <div class="text-2xl font-bold text-slate-300">${((s.avg_retained_pct||0)*100).toFixed(0)}%</div>
+        <div class="text-xs text-slate-500 mt-1">Avg Retained</div>
+        <div class="text-xs text-slate-600 mt-0.5">AI content kept</div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('intel-summary-cards').innerHTML = '<div class="col-span-4 text-slate-600 text-sm text-center py-4">No metrics yet.</div>';
+  }
+
+  // Edit history
+  try {
+    const history = await api('/metrics');
+    document.getElementById('intel-edit-count').textContent = `${history.length} sessions`;
+    if (!history.length) { document.getElementById('intel-history').innerHTML = '<div class="p-4 text-center text-slate-600 text-sm">No edit history yet.</div>'; }
+    else {
+      document.getElementById('intel-history').innerHTML = history.slice().reverse().map(h => {
+        const s = h.improvement_score||0;
+        const c = s>=75?'text-green-400':s>=50?'text-yellow-400':'text-red-400';
+        const date = h.timestamp ? new Date(h.timestamp).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+        return `<div class="px-4 py-2.5 flex items-center justify-between hover:bg-navy-600 transition-colors">
+          <div>
+            <div class="text-xs text-slate-300 truncate max-w-xs">${h.query||'(no query)'}</div>
+            <div class="text-xs text-slate-600 mt-0.5">${date}</div>
+          </div>
+          <div class="text-sm font-bold ${c} font-mono">${s.toFixed(0)}</div>
+        </div>`;
+      }).join('');
+    }
+  } catch(e) { document.getElementById('intel-history').innerHTML = '<div class="p-4 text-sm text-slate-600">Failed to load history.</div>'; }
+
+  // Preferences
+  try {
+    const prefs = await api('/preferences');
+    const active = prefs.filter(p => p.active);
+    document.getElementById('intel-pref-count').textContent = `${active.length} active / ${prefs.length} total`;
+    if (!prefs.length) { document.getElementById('intel-prefs').innerHTML = '<div class="p-4 text-center text-slate-600 text-sm">No preferences learned yet.</div>'; }
+    else {
+      document.getElementById('intel-prefs').innerHTML = prefs.map((p,i) => `
+        <div class="px-4 py-2.5 flex items-start gap-3 hover:bg-navy-600 transition-colors ${!p.active?'opacity-40':''}">
+          <div class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${p.active?'bg-green-500':'bg-slate-600'}"></div>
+          <div class="flex-1 min-w-0">
+            <div class="text-xs text-slate-300 leading-relaxed">${p.preference}</div>
+            ${p.improvement_score_at_capture ? `<div class="text-xs text-slate-600 mt-0.5">Score at capture: ${p.improvement_score_at_capture.toFixed(0)}</div>` : ''}
+          </div>
+          ${p.active ? `<button onclick="deactivatePref(${i})" class="text-xs text-slate-600 hover:text-red-400 transition-colors flex-shrink-0">Deactivate</button>` : ''}
+        </div>`).join('');
+    }
+    document.getElementById('stat-prefs').textContent = active.length;
+  } catch(e) { document.getElementById('intel-prefs').innerHTML = '<div class="p-4 text-sm text-slate-600">Failed to load preferences.</div>'; }
+
+  // Profile
+  try {
+    const profile = await api('/profile');
+    renderProfile(profile);
+  } catch(e) {
+    if (e.message.includes('404') || e.message.includes('not built')) {
+      document.getElementById('intel-profile').innerHTML = '<div class="text-sm text-slate-500">No profile built yet. Click Rebuild to generate one from accumulated preferences.</div>';
+    } else {
+      document.getElementById('intel-profile').innerHTML = '<div class="text-sm text-slate-600">Could not load profile.</div>';
+    }
+  }
+}
+
+function renderProfile(p) {
+  if (!p || !Object.keys(p).length) {
+    document.getElementById('intel-profile').innerHTML = '<div class="text-sm text-slate-500">No profile yet.</div>';
+    return;
+  }
+  document.getElementById('intel-profile').innerHTML = `
+    <div class="grid grid-cols-3 gap-4">
+      <div class="col-span-3">
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Summary</div>
+        <div class="text-sm text-slate-300 leading-relaxed">${p.summary||'—'}</div>
+      </div>
+      <div>
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Writing Style</div>
+        <div class="text-sm text-slate-300">${p.writing_style||'—'}</div>
+      </div>
+      <div>
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Always Include</div>
+        <div class="space-y-1">${(p.content_priorities||[]).map(s=>`<div class="text-xs text-green-400 flex items-center gap-1"><span class="text-green-600">+</span>${s}</div>`).join('')||'—'}</div>
+      </div>
+      <div>
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Avoid</div>
+        <div class="space-y-1">${(p.avoid||[]).map(s=>`<div class="text-xs text-red-400 flex items-center gap-1"><span class="text-red-600">−</span>${s}</div>`).join('')||'—'}</div>
+      </div>
+    </div>`;
+}
+
+async function deactivatePref(index) {
+  try {
+    await api('/preferences/deactivate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({index}) });
+    showToast('Preference deactivated.', 'success');
+    loadIntelligence();
+  } catch(e) { showToast('Failed: '+e.message,'error'); }
+}
+
+async function buildProfile() {
+  document.getElementById('profile-btn').textContent = 'Building…';
+  document.getElementById('profile-btn').disabled = true;
+  try {
+    const p = await api('/profile/build', { method:'POST' });
+    renderProfile(p);
+    showToast('Operator profile rebuilt.', 'success');
+  } catch(e) { showToast('Failed: '+e.message,'error'); }
+  finally {
+    document.getElementById('profile-btn').disabled = false;
+    document.getElementById('profile-btn').innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Rebuild`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════════════════════
+async function loadStats() {
+  try {
+    const history = await api('/metrics');
+    document.getElementById('stat-edits').textContent = history.length;
+  } catch {}
+  try {
+    const prefs = await api('/preferences');
+    document.getElementById('stat-prefs').textContent = prefs.filter(p=>p.active).length;
+  } catch {}
+}
+
+// ══════════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type='success') {
+  clearTimeout(toastTimer);
+  const t = document.getElementById('toast');
+  const inner = document.getElementById('toast-inner');
+  const icon = document.getElementById('toast-icon');
+  const txt = document.getElementById('toast-msg');
+  const configs = {
+    success: { bg:'bg-green-950 border-green-700/50', icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>', text:'text-green-300' },
+    error:   { bg:'bg-red-950 border-red-700/50',   icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>', text:'text-red-300' },
+    warning: { bg:'bg-yellow-950 border-yellow-700/50', icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>', text:'text-yellow-300' },
+  };
+  const cfg = configs[type] || configs.success;
+  inner.className = `flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl text-sm font-medium max-w-sm ${cfg.bg}`;
+  icon.innerHTML = cfg.icon;
+  txt.className = cfg.text;
+  txt.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateY(0)';
+  t.classList.remove('pointer-events-none');
+  toastTimer = setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(8px)';
+    t.classList.add('pointer-events-none');
+  }, 4000);
+}
+
+// ══════════════════════════════════════════════════════════════
+// HEALTH CHECK
+// ══════════════════════════════════════════════════════════════
+async function checkHealth() {
+  try {
+    await api('/health');
+  } catch {
+    document.getElementById('api-status').innerHTML = `<div class="w-1.5 h-1.5 rounded-full bg-red-500"></div><span class="text-red-400">API Offline</span>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+(async function init() {
+  await checkHealth();
+  await loadDocuments();
+  await loadStats();
+  renderAnalyzeBanner();
+})();
+</script>
+</body>
+</html>
