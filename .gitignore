@@ -3,11 +3,15 @@
 venv/
 env/
 
-# Vector store (large, regenerated on first run)
+# Vector store (regenerated on first run)
 data/chroma_db/
 
-# Uploads (user data)
+# Uploads (user data, not tracked)
 data/uploads/
+
+# Runtime data (regenerated at runtime)
+data/learned_preferences/
+logs/
 
 # Python cache
 __pycache__/
@@ -15,6 +19,9 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+*.egg-info/
+dist/
+build/
 
 # Environment variables (contains secrets)
 .env
@@ -26,3 +33,11 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Next.js
+frontend/.next/
+frontend/node_modules/
+frontend/out/
+
+# pytest
+.pytest_cache/

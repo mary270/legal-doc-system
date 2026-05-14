@@ -187,34 +187,42 @@ label, .stMarkdown p { color: #8b949e !important; font-size: 0.78rem !important;
 
 /* ─── Buttons ─── */
 .stButton > button {
-    background:#f0c040 !important; color:#0d1117 !important;
+    background:#1f6feb !important; color:#ffffff !important;
     font-weight:700 !important; font-size:0.78rem !important;
     letter-spacing:0.07em !important; text-transform:uppercase !important;
     border:none !important; border-radius:5px !important;
     padding:0.55rem 1.3rem !important; width:100% !important;
     transition:all 0.15s !important;
+    text-shadow:none !important;
+    -webkit-font-smoothing:antialiased !important;
 }
 .stButton > button:hover {
-    background:#f5cc5a !important; color:#0d1117 !important;
-    box-shadow:0 3px 12px rgba(240,192,64,0.35) !important;
+    background:#388bfd !important; color:#ffffff !important;
+    box-shadow:0 3px 14px rgba(31,111,235,0.45) !important;
     transform:translateY(-1px) !important;
+}
+.stButton > button:active {
+    background:#1158c7 !important; color:#ffffff !important;
+    transform:translateY(0) !important;
 }
 .stButton > button[disabled] {
     background:#21262d !important; color:#484f58 !important;
     transform:none !important; box-shadow:none !important;
 }
 [data-testid="stSidebar"] .stButton > button {
-    background:#f0c040 !important; color:#0d1117 !important;
+    background:#1f6feb !important; color:#ffffff !important;
     font-weight:800 !important;
+    box-shadow:0 2px 8px rgba(31,111,235,0.3) !important;
 }
 
 /* ─── Download button ─── */
 [data-testid="stDownloadButton"] > button {
-    background:transparent !important; color:#f0c040 !important;
-    border:1px solid #f0c040 !important; font-size:0.74rem !important;
+    background:transparent !important; color:#388bfd !important;
+    border:1px solid #388bfd !important; font-size:0.74rem !important;
+    font-weight:600 !important;
 }
 [data-testid="stDownloadButton"] > button:hover {
-    background:rgba(240,192,64,0.1) !important;
+    background:rgba(31,111,235,0.12) !important; color:#ffffff !important;
 }
 
 /* ─── Inputs ─── */
@@ -368,7 +376,15 @@ from operator_profile import build_profile, load_profile
 SUPPORTED = ["pdf","txt","png","jpg","jpeg","tiff","tif","bmp","md","rtf"]
 
 # ── Session state ──────────────────────────────────────────────────────────────
-for k, v in {"last_draft":"","last_query":"","last_sources":[],"last_metrics":{}}.items():
+_STATE_DEFAULTS = {
+    "last_draft":        "",
+    "last_query":        "",
+    "last_sources":      [],
+    "last_metrics":      {},
+    "selected_doc_id":   None,   # doc_id currently scoped for analysis
+    "selected_doc_name": "All Documents",
+}
+for k, v in _STATE_DEFAULTS.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
@@ -462,17 +478,67 @@ with st.sidebar:
                     os.unlink(tmp_path)
             st.rerun()
 
-    # Library
+    # Library + Document Selector
     st.markdown('<div class="sec-label">Document Library</div>', unsafe_allow_html=True)
     if not docs:
         st.markdown('<div class="doc-meta" style="text-align:center;padding:0.8rem 0;color:#484f58;">No documents indexed.</div>', unsafe_allow_html=True)
     else:
+        # Build selector options: "All Documents" + one per indexed doc
+        doc_options = {"All Documents": None}
         for d in docs:
+            label = d["file_name"] if len(d["file_name"]) <= 28 else d["file_name"][:25] + "..."
+            doc_options[label] = d["doc_id"]
+
+        current_label = st.session_state.selected_doc_name
+        if current_label not in doc_options:
+            current_label = "All Documents"
+
+        chosen_label = st.selectbox(
+            "Scope analysis to:",
+            options=list(doc_options.keys()),
+            index=list(doc_options.keys()).index(current_label),
+            label_visibility="collapsed",
+            key="doc_selector",
+        )
+
+        chosen_id = doc_options[chosen_label]
+
+        # When selection changes, clear stale draft so user sees fresh results
+        if chosen_id != st.session_state.selected_doc_id:
+            st.session_state.selected_doc_id   = chosen_id
+            st.session_state.selected_doc_name = chosen_label
+            st.session_state.last_draft        = ""
+            st.session_state.last_sources      = []
+            st.session_state.last_query        = ""
+
+        # Show cards for all docs, highlight the selected one
+        for d in docs:
+            is_active = (d["doc_id"] == st.session_state.selected_doc_id)
+            border    = "#1f6feb" if is_active else "#30363d"
+            indicator = '<span style="color:#1f6feb;font-size:0.65rem;font-weight:700;margin-left:0.4rem;">● ACTIVE</span>' if is_active else ""
             st.markdown(f"""
-            <div class="doc-card">
-                <div class="doc-name">{d['file_name']}</div>
+            <div class="doc-card" style="border-color:{border};margin-top:0.4rem;">
+                <div class="doc-name">{d['file_name']}{indicator}</div>
                 <div style="margin:0.2rem 0;">{badge(d.get('document_type','other'))}</div>
                 <div class="doc-meta">{d.get('summary','')[:80]}…</div>
+            </div>""", unsafe_allow_html=True)
+
+        # Scope indicator below library
+        if st.session_state.selected_doc_id:
+            st.markdown(f"""
+            <div style="margin-top:0.6rem;padding:0.45rem 0.7rem;
+                        background:rgba(31,111,235,0.1);border:1px solid rgba(31,111,235,0.3);
+                        border-radius:5px;font-size:0.72rem;color:#79c0ff;line-height:1.4;">
+                <strong>Scoped to:</strong> {st.session_state.selected_doc_name}<br>
+                <span style="color:#484f58;font-size:0.67rem;">
+                Drafts will only use chunks from this document.</span>
+            </div>""", unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div style="margin-top:0.6rem;padding:0.45rem 0.7rem;
+                        background:rgba(139,148,158,0.08);border:1px solid #30363d;
+                        border-radius:5px;font-size:0.72rem;color:#8b949e;line-height:1.4;">
+                <strong>All documents</strong> — search spans the full corpus.
             </div>""", unsafe_allow_html=True)
 
 
@@ -511,6 +577,28 @@ with tab1:
             <div class="empty-desc">Upload a PDF, image, or text file using the sidebar panel.</div>
         </div>""", unsafe_allow_html=True)
     else:
+        # Show active scope banner
+        active_doc_id   = st.session_state.selected_doc_id
+        active_doc_name = st.session_state.selected_doc_name
+        if active_doc_id:
+            st.markdown(f"""
+            <div style="margin-bottom:0.8rem;padding:0.5rem 0.85rem;
+                        background:rgba(31,111,235,0.1);border:1px solid rgba(31,111,235,0.3);
+                        border-radius:5px;font-size:0.78rem;color:#79c0ff;">
+                Analyzing: <strong>{active_doc_name}</strong>
+                <span style="color:#484f58;font-size:0.7rem;margin-left:0.6rem;">
+                (change in sidebar → Document Library)</span>
+            </div>""", unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div style="margin-bottom:0.8rem;padding:0.5rem 0.85rem;
+                        background:rgba(139,148,158,0.06);border:1px solid #30363d;
+                        border-radius:5px;font-size:0.78rem;color:#8b949e;">
+                Analyzing: <strong>All Documents</strong>
+                <span style="font-size:0.7rem;margin-left:0.5rem;">
+                — select a specific document in the sidebar to scope results</span>
+            </div>""", unsafe_allow_html=True)
+
         col_q, col_c = st.columns([3,1], gap="medium")
         with col_q:
             st.markdown('<div class="col-label">Matter or question</div>', unsafe_allow_html=True)
@@ -525,14 +613,20 @@ with tab1:
         if run_btn and query:
             with st.spinner("Retrieving evidence and generating grounded draft…"):
                 try:
-                    chunks  = search(query, n_results=n_res)
+                    # Pass doc_id_filter so search is scoped to the selected document
+                    chunks  = search(query, n_results=n_res, doc_id_filter=active_doc_id)
                     learned = get_active_preferences()
-                    result  = generate_draft(query=query, retrieved_chunks=chunks, learned_preferences=learned)
-                    st.session_state.last_draft   = result["draft"]
-                    st.session_state.last_query   = query
-                    st.session_state.last_sources = result["sources"]
-                    if learned:
-                        st.info(f"{len(learned)} learned preferences applied.")
+
+                    if not chunks:
+                        scope_msg = f'"{active_doc_name}"' if active_doc_id else "any indexed document"
+                        st.warning(f"No relevant passages found in {scope_msg}. Try broadening your query or selecting a different document.")
+                    else:
+                        result  = generate_draft(query=query, retrieved_chunks=chunks, learned_preferences=learned)
+                        st.session_state.last_draft   = result["draft"]
+                        st.session_state.last_query   = query
+                        st.session_state.last_sources = result["sources"]
+                        if learned:
+                            st.info(f"{len(learned)} learned preferences applied.")
                 except (RateLimitError, BadRequestError) as e:
                     _rate_limit_card(e)
                 except Exception as e:

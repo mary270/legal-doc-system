@@ -7,6 +7,7 @@ Usage:
     python main.py demo          # Run full pipeline on sample documents
     python main.py api           # Start FastAPI server
     python main.py ui            # Start Streamlit UI
+    python main.py frontend      # Start Next.js frontend (npm run dev)
 """
 from __future__ import annotations
 
@@ -152,13 +153,24 @@ def run_api():
 
 
 def run_ui():
+    """Start FastAPI which serves the HTML UI at http://localhost:8000"""
+    run_api()
+
+
+def run_frontend():
     import subprocess
-    print("Starting Streamlit UI...")
-    subprocess.run([
-        sys.executable, "-m", "streamlit", "run",
-        str(Path(__file__).parent / "src" / "app.py"),
-        "--server.port", "8501",
-    ])
+    frontend_dir = Path(__file__).parent / "frontend"
+    if not frontend_dir.exists():
+        print(f"ERROR: frontend directory not found at {frontend_dir}")
+        sys.exit(1)
+    print("Starting Next.js frontend at http://localhost:3000")
+    print(f"Working directory: {frontend_dir}")
+    print("Make sure dependencies are installed: npm install")
+    subprocess.run(
+        ["npm", "run", "dev"],
+        cwd=str(frontend_dir),
+        shell=True,
+    )
 
 
 if __name__ == "__main__":
@@ -169,6 +181,8 @@ if __name__ == "__main__":
         run_api()
     elif command == "ui":
         run_ui()
+    elif command == "frontend":
+        run_frontend()
     else:
-        print(f"Unknown command: {command}. Use: demo | api | ui")
+        print(f"Unknown command: {command}. Use: demo | api | ui | frontend")
         sys.exit(1)
