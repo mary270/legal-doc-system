@@ -1,13 +1,15 @@
 """
-Edit learner: captures operator edits to AI drafts, extracts reusable style/content
-preferences using Groq (LLaMA 3), and stores them so future drafts improve automatically.
+Edit learner — captures operator edits, extracts generalizable preferences,
+tracks quantitative improvement metrics, and feeds learned signals back into
+future draft generation.
 
-This is NOT a diff tool. It extracts semantic patterns — things like tone preferences,
-structural choices, and content emphasis — that generalize across different documents.
+Key design: semantic extraction (not syntactic diff).
+Claude/LLaMA analyses WHAT changed and WHY, producing reusable rules.
 """
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from datetime import datetime
@@ -16,40 +18,27 @@ from typing import Any
 
 from groq import Groq
 
-_client = Groq(api_key=os.environ.get("GROQ_API_KEY", ""))
-_MODELS = [
-    ("llama-3.3-70b-versatile", 60000),
-    ("gemma2-9b-it",            20000),
-    ("llama-3.1-8b-instant",    12000),
-]
+from metrics import compute_edit_metrics, save_metrics
 
+try:
+    from config import GROQ_API_KEY, LLM_MODELS, PREFS_FILE, MAX_ACTIVE_PREFERENCES
+except ImportError:
+    GROQ_API_KEY           = os.environ.get("GROQ_API_KEY", "")
+    LLM_MODELS             = [
+        {"name": "llama-3.3-70b-versatile", "char_budget": 60_000, "max_out": 512},
+        {"name": "gemma2-9b-it",            "char_budget": 20_000, "max_out": 512},
+        {"name": "llama-3.1-8b-instant",    "char_budget": 12_000, "max_out": 512},
+    ]
+    PREFS_FILE             = Path(__file__).parent.parent / "data" / "learned_preferences" / "preferences.json"
+    MAX_ACTIVE_PREFERENCES = 10
 
-def _chat(messages: list, max_tokens: int = 512) -> str:
-    from groq import RateLimitError, BadRequestError
-    for model, char_budget in _MODELS:
-        trimmed = []
-        for m in messages:
-            if m["role"] == "user" and len(m["content"]) > char_budget:
-                trimmed.append({**m, "content": m["content"][:char_budget]})
-            else:
-                trimmed.append(m)
-        try:
-            resp = _client.chat.completions.create(
-                model=model, max_tokens=max_tokens, messages=trimmed,
-            )
-            return resp.choices[0].message.content.strip()
-        except (RateLimitError, BadRequestError):
-            if model == _MODELS[-1][0]:
-                raise
-            continue
-    return "[]"
+log    = logging.getLogger(__name__)
+_client= Groq(api_key=GROQ_API_KEY)
 
-_PREFS_FILE = Path(__file__).parent.parent / "data" / "learned_preferences" / "preferences.json"
+_ANALYZE_PROMPT = """You are analysing how a human legal analyst edited an AI-generated draft.
 
-_ANALYZE_PROMPT = """You are analyzing how a human legal analyst edited an AI-generated draft.
-
-Your job: identify GENERALIZABLE preferences that should be applied to ALL future drafts.
-Focus on patterns that would improve any legal summary, not just this specific document.
+Identify GENERALIZABLE preferences that should apply to ALL future drafts.
+Focus on patterns that transfer across documents, not just this specific case.
 
 ORIGINAL AI DRAFT:
 {original}
@@ -57,65 +46,115 @@ ORIGINAL AI DRAFT:
 OPERATOR-EDITED VERSION:
 {edited}
 
-Identify up to 5 specific, actionable preferences. Focus on:
-- Tone and formality changes (e.g., "use more formal language", "avoid hedging phrases")
-- Structural changes (e.g., "lead with parties, not dates", "always include a risk flag section")
-- Content emphasis (e.g., "always highlight missing signatures", "include exact dollar amounts")
-- Citation style (e.g., "cite page numbers not just document names")
-- What the operator added, removed, or substantially rewrote
+Look for:
+- Tone / formality changes
+- Structural changes (sections added, removed, reordered)
+- Content emphasis (what was highlighted or de-emphasised)
+- Citation style
+- Boilerplate the operator always adds
+- Things the operator always removes
 
-You MUST return a JSON array. Even small edits reveal preferences.
-Look carefully at every addition, deletion, and rewrite.
-
-Example output:
-["Use formal legal tone, avoid casual phrasing", "Always include a Risk Flags section", "Highlight wire reference numbers when payment is disputed"]
-
-Return the JSON array directly, no explanation, no markdown fences.
+You MUST return a JSON array of up to 5 concise preference strings (each under 90 chars).
+Example: ["Always include a Risk Flags section", "Use exact dollar amounts not approximations"]
+Return [] only if edits are purely cosmetic typo fixes.
+Return the JSON array only — no explanation, no markdown.
 """
 
 
+# ── LLM helper ─────────────────────────────────────────────────────────────────
+
+def _chat(messages: list[dict], max_tokens: int = 512) -> str:
+    from groq import RateLimitError, BadRequestError
+    for model_cfg in LLM_MODELS:
+        budget  = model_cfg["char_budget"]
+        trimmed = [
+            {**m, "content": m["content"][:budget]}
+            if m["role"] == "user" and len(m["content"]) > budget else m
+            for m in messages
+        ]
+        try:
+            resp = _client.chat.completions.create(
+                model=model_cfg["name"],
+                max_tokens=max_tokens,
+                messages=trimmed,
+            )
+            return resp.choices[0].message.content.strip()
+        except (RateLimitError, BadRequestError):
+            log.warning("Model %s unavailable, trying next…", model_cfg["name"])
+            if model_cfg == LLM_MODELS[-1]:
+                raise
+            continue
+    return "[]"
+
+
+# ── Preferences store ──────────────────────────────────────────────────────────
+
 def _load_preferences() -> list[dict[str, Any]]:
-    _PREFS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    if not _PREFS_FILE.exists():
+    PREFS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if not PREFS_FILE.exists():
         return []
-    with open(_PREFS_FILE) as f:
-        return json.load(f)
+    try:
+        return json.loads(PREFS_FILE.read_text())
+    except Exception:
+        return []
 
 
 def _save_preferences(prefs: list[dict[str, Any]]) -> None:
-    _PREFS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(_PREFS_FILE, "w") as f:
-        json.dump(prefs, f, indent=2)
+    PREFS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    PREFS_FILE.write_text(json.dumps(prefs, indent=2))
 
+
+# ── Public API ─────────────────────────────────────────────────────────────────
 
 def capture_edit(
     original_draft: str,
-    edited_draft: str,
-    query: str = "",
-    doc_names: list[str] | None = None,
+    edited_draft:   str,
+    query:          str = "",
+    doc_names:      list[str] | None = None,
 ) -> dict[str, Any]:
     """
-    Analyze what an operator changed in a draft and extract reusable preferences.
-    Returns extracted preferences and saves them persistently.
-    """
-    if original_draft.strip() == edited_draft.strip():
-        return {"preferences_extracted": [], "message": "No changes detected."}
+    Main entry point called when an operator submits an edited draft.
 
+    1. Computes quantitative edit metrics (edit distance, retained %, score)
+    2. Uses LLM to extract generalizable style/content preferences
+    3. Persists both metrics and preferences
+
+    Returns dict with metrics + extracted preferences.
+    """
+    # Step 1 — quantitative metrics
+    edit_metrics = compute_edit_metrics(original_draft, edited_draft)
+    log.info(
+        "Edit captured — improvement_score=%.1f  retained=%.0f%%  edit_dist=%.0f%%",
+        edit_metrics["improvement_score"],
+        edit_metrics["retained_pct"] * 100,
+        edit_metrics["edit_distance_pct"] * 100,
+    )
+
+    if not edit_metrics["changed"]:
+        return {
+            "preferences_extracted": [],
+            "edit_metrics":          edit_metrics,
+            "message":               "No meaningful changes detected (edit < 3%).",
+        }
+
+    # Persist metrics history
+    save_metrics({**edit_metrics, "query": query})
+
+    # Step 2 — semantic preference extraction
     prompt = _ANALYZE_PROMPT.format(
         original=original_draft[:3000],
         edited=edited_draft[:3000],
     )
-
     raw = _chat(
         messages=[
-            {"role": "system", "content": "You are a legal AI trainer. Always respond with a valid JSON array only, no markdown."},
+            {"role": "system", "content": "Legal AI trainer. Respond with a JSON array only."},
             {"role": "user",   "content": prompt},
         ],
         max_tokens=512,
     )
-    raw = re.sub(r"^```json?\s*", "", raw)
-    raw = re.sub(r"\s*```$", "", raw)
 
+    raw = re.sub(r"^```json?\s*", "", raw)
+    raw = re.sub(r"\s*```$",      "", raw)
     try:
         new_prefs: list[str] = json.loads(raw)
         if not isinstance(new_prefs, list):
@@ -123,36 +162,36 @@ def capture_edit(
     except Exception:
         new_prefs = []
 
-    # Load existing, append new entries with timestamp
-    all_prefs = _load_preferences()
-    timestamp = datetime.utcnow().isoformat()
-
+    # Step 3 — persist preferences
+    all_prefs  = _load_preferences()
+    timestamp  = datetime.utcnow().isoformat()
     for pref in new_prefs:
         all_prefs.append({
-            "preference": pref,
+            "preference":   pref,
             "extracted_at": timestamp,
-            "query": query,
-            "doc_names": doc_names or [],
-            "active": True,
+            "query":        query[:100],
+            "doc_names":    doc_names or [],
+            "active":       True,
+            "improvement_score_at_capture": edit_metrics["improvement_score"],
         })
-
     _save_preferences(all_prefs)
 
+    log.info("Extracted %d preferences; total stored: %d", len(new_prefs), len(all_prefs))
     return {
         "preferences_extracted": new_prefs,
-        "total_stored": len(all_prefs),
-        "message": f"Extracted {len(new_prefs)} preferences from this edit.",
+        "edit_metrics":          edit_metrics,
+        "total_stored":          len(all_prefs),
+        "message":               f"Extracted {len(new_prefs)} preferences. "
+                                 f"Draft retained {edit_metrics['retained_pct']*100:.0f}% of AI content.",
     }
 
 
-def get_active_preferences(limit: int = 10) -> list[str]:
-    """
-    Return the most recently learned active preferences to inject into new drafts.
-    """
+def get_active_preferences(limit: int = MAX_ACTIVE_PREFERENCES) -> list[str]:
+    """Return latest active preferences for injection into the next draft prompt."""
     all_prefs = _load_preferences()
-    active = [p for p in all_prefs if p.get("active", True)]
+    active    = [p for p in all_prefs if p.get("active", True)]
     seen: list[str] = []
-    for pref in reversed(active):  # newest first
+    for pref in reversed(active):
         text = pref["preference"]
         if not any(text[:30] in s for s in seen):
             seen.append(text)
@@ -166,10 +205,10 @@ def list_all_preferences() -> list[dict[str, Any]]:
 
 
 def deactivate_preference(index: int) -> bool:
-    """Mark a preference as inactive so it won't be used in future drafts."""
     prefs = _load_preferences()
     if 0 <= index < len(prefs):
         prefs[index]["active"] = False
         _save_preferences(prefs)
+        log.info("Deactivated preference #%d", index)
         return True
     return False
